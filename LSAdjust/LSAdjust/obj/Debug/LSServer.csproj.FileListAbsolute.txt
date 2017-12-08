@@ -1,0 +1,10 @@
+C:\Users\wode\Documents\Visual Studio 2017\Projects\learnwuziqi\learnwuziqi\bin\Debug\learnwuziqi.exe.config
+C:\Users\wode\Documents\Visual Studio 2017\Projects\learnwuziqi\learnwuziqi\bin\Debug\learnwuziqi.exe
+C:\Users\wode\Documents\Visual Studio 2017\Projects\learnwuziqi\learnwuziqi\bin\Debug\learnwuziqi.pdb
+C:\Users\wode\Documents\Visual Studio 2017\Projects\learnwuziqi\learnwuziqi\obj\Debug\LSServer.csprojResolveAssemblyReference.cache
+C:\Users\wode\Documents\Visual Studio 2017\Projects\learnwuziqi\learnwuziqi\obj\Debug\learnwuziqi.FrmServer.resources
+C:\Users\wode\Documents\Visual Studio 2017\Projects\learnwuziqi\learnwuziqi\obj\Debug\learnwuziqi.Properties.Resources.resources
+C:\Users\wode\Documents\Visual Studio 2017\Projects\learnwuziqi\learnwuziqi\obj\Debug\LSServer.csproj.GenerateResource.Cache
+C:\Users\wode\Documents\Visual Studio 2017\Projects\learnwuziqi\learnwuziqi\obj\Debug\LSServer.csproj.CoreCompileInputs.cache
+C:\Users\wode\Documents\Visual Studio 2017\Projects\learnwuziqi\learnwuziqi\obj\Debug\learnwuziqi.exe
+C:\Users\wode\Documents\Visual Studio 2017\Projects\learnwuziqi\learnwuziqi\obj\Debug\learnwuziqi.pdb

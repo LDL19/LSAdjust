@@ -75,6 +75,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service.cs" />
+    <EmbeddedResource Include="FrmPlay.resx">
+      <DependentUpon>FrmPlay.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FrmRoom.resx">
       <DependentUpon>FrmRoom.cs</DependentUpon>
     </EmbeddedResource>

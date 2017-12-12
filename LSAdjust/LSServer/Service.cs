@@ -44,11 +44,11 @@ namespace LSServer
                 SetListBox(string.Format("向{0}发送信息失败", user.userName));
             }
         }
-        public void Send2Table(Table gameTable,string str)
+        public void Send2Table(Table gameTable,string str,int exceptindex=-1)
         {
-            for(int i=0;i<Table.MAX_PLAYER;i++)
+            for(int i=0;i<Table.MAX_USER;i++)
             {
-                if(gameTable.users[i]!=null)
+                if(gameTable.users[i]!=null && i!=exceptindex)
                 {
                     Send2User(gameTable.users[i],str);
                 }

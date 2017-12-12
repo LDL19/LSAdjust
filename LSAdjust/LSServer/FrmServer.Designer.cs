@@ -33,6 +33,10 @@
             this.textBoxMaxTables = new System.Windows.Forms.TextBox();
             this.btnStart = new System.Windows.Forms.Button();
             this.btnStop = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.textBoxPort = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // listBox1
@@ -47,16 +51,16 @@
             // 
             // textBoxMaxUsers
             // 
-            this.textBoxMaxUsers.Location = new System.Drawing.Point(376, 313);
+            this.textBoxMaxUsers.Location = new System.Drawing.Point(538, 340);
             this.textBoxMaxUsers.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxMaxUsers.Name = "textBoxMaxUsers";
             this.textBoxMaxUsers.Size = new System.Drawing.Size(60, 25);
             this.textBoxMaxUsers.TabIndex = 8;
-            this.textBoxMaxUsers.Text = "10";
+            this.textBoxMaxUsers.Text = "3";
             // 
             // textBoxMaxTables
             // 
-            this.textBoxMaxTables.Location = new System.Drawing.Point(375, 346);
+            this.textBoxMaxTables.Location = new System.Drawing.Point(538, 307);
             this.textBoxMaxTables.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxMaxTables.Name = "textBoxMaxTables";
             this.textBoxMaxTables.Size = new System.Drawing.Size(61, 25);
@@ -65,10 +69,10 @@
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(290, 398);
+            this.btnStart.Location = new System.Drawing.Point(209, 366);
             this.btnStart.Margin = new System.Windows.Forms.Padding(4);
             this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(100, 29);
+            this.btnStart.Size = new System.Drawing.Size(153, 61);
             this.btnStart.TabIndex = 10;
             this.btnStart.Text = "启动服务";
             this.btnStart.UseVisualStyleBackColor = true;
@@ -76,19 +80,59 @@
             // 
             // btnStop
             // 
-            this.btnStop.Location = new System.Drawing.Point(425, 398);
+            this.btnStop.Location = new System.Drawing.Point(370, 366);
             this.btnStop.Margin = new System.Windows.Forms.Padding(4);
             this.btnStop.Name = "btnStop";
-            this.btnStop.Size = new System.Drawing.Size(100, 29);
+            this.btnStop.Size = new System.Drawing.Size(149, 61);
             this.btnStop.TabIndex = 11;
             this.btnStop.Text = "停止服务";
             this.btnStop.UseVisualStyleBackColor = true;
+            this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(466, 310);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(37, 15);
+            this.label1.TabIndex = 12;
+            this.label1.Text = "桌数";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(406, 339);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(97, 15);
+            this.label2.TabIndex = 13;
+            this.label2.Text = "每桌游戏人数";
+            // 
+            // textBoxPort
+            // 
+            this.textBoxPort.Location = new System.Drawing.Point(156, 310);
+            this.textBoxPort.Name = "textBoxPort";
+            this.textBoxPort.Size = new System.Drawing.Size(100, 25);
+            this.textBoxPort.TabIndex = 14;
+            this.textBoxPort.Text = "51888";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(69, 313);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(67, 15);
+            this.label3.TabIndex = 15;
+            this.label3.Text = "监听端口";
             // 
             // FrmServer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(843, 475);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.textBoxPort);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.btnStop);
             this.Controls.Add(this.btnStart);
             this.Controls.Add(this.textBoxMaxTables);
@@ -110,6 +154,10 @@
         private System.Windows.Forms.TextBox textBoxMaxTables;
         private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Button btnStop;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox textBoxPort;
+        private System.Windows.Forms.Label label3;
     }
 }
 

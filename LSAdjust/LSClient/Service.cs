@@ -8,7 +8,7 @@ using System.IO;
 
 namespace LSClient
 {
-    class Service
+    public class Service
     {
         private ListBox listbox;
         StreamWriter sw;

@@ -20,11 +20,13 @@ namespace LSClient
         private StreamReader sr;
         private StreamWriter sw;
         private Service service;
-        int max_table=0;//最大桌子数
-        int max_player;//每桌允许人数。
-        private int side = -1;
+        NetworkStream netSteam;
+        int MAX_TABLE=0;//最大桌子数
+        int MAX_USER=0;//每桌允许人数。
+        private bool[,] seatingChart;//用于知道此地有没有人
+        private int seat = -1;
         //所坐游戏的座位号，-1表示未入座
-        private bool receiveCmd = false;//是否从服务器接受命令
+        private bool receiveCmd = false;//接受命令而改变checkbox的状态，是true，否则是false
         private bool normalExit = false;//是否正常退出线程
         private CheckBox[,] CheckBoxGameTables;
         private FrmPlay FrmPlay;
@@ -52,16 +54,16 @@ namespace LSClient
             }
             try
             {
-                IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textBoxServer.Text), 51888);
-                client = new TcpClient(ipe);
+                //IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(textBoxAddr.Text), int.Parse(textBoxPort.Text));
+                client = new TcpClient(Dns.GetHostName(), int.Parse(textBoxPort.Text));
             }
             catch
             {
                 MessageBox.Show("与服务器连接失败", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
+            netSteam = client.GetStream();
             btnLogin.Enabled = false;
-            NetworkStream netSteam = client.GetStream();
             sr = new StreamReader(netSteam, System.Text.Encoding.UTF8);
             sw = new StreamWriter(netSteam, System.Text.Encoding.UTF8);
             service = new Service(listBox1, sw);
@@ -88,9 +90,9 @@ namespace LSClient
                 {
                     if(normalExit==false)
                         MessageBox.Show("与服务器失去联系，游戏无法继续！");
-                    if(side!=-1)
+                    if(seat!=-1)
                         ExitFrmPlay();
-                    side = -1;
+                    seat = -1;
                     normalExit = true;
                     break;
                 }
@@ -103,48 +105,39 @@ namespace LSClient
                         exitWhile = true;
                         break;
                     case "Tables"://注意，每桌允许人数还没有发来
+                        ///格式：tables+seatingchartstr+max_table
                         string s = info[1];
-                        if (max_table == 0)
+                        if (MAX_TABLE == 0)
                         {
-                            max_table = s.Length / max_player;
-                            CheckBoxGameTables = new CheckBox[max_table, max_player];
+                            MAX_TABLE = int.Parse(info[2]);
+                            MAX_USER = s.Length / MAX_TABLE;
+                            seatingChart = new bool[MAX_TABLE, MAX_USER];
+                            for (int i = 0; i < MAX_TABLE; i++)
+                                for (int j = 0; j < MAX_USER; j++)
+                                    seatingChart[i, j] = s[MAX_USER * i + j] == '1' ? true : false;
+                            CheckBoxGameTables = new CheckBox[MAX_TABLE, MAX_USER];
                             receiveCmd = true;
-                            for(int i=0;i<max_table;i++)
+                            for(int i=0;i<MAX_TABLE;i++)
                                 AddCheckBoxToPanel(s, i);
                             receiveCmd = false;
                         }
                         else
                         {
                             receiveCmd = true;
-                            for (int i = 0; i < max_table; i++)
-                                for (int j = 0; i < 2; j++)
-                                    if (s[max_player * i + j] == '0')
+                            for (int i = 0; i < MAX_TABLE; i++)
+                                for (int j = 0; j < MAX_USER; j++)
+                                {
+                                    seatingChart[i, j] = s[MAX_USER * i + j] == '1' ? true : false;
+                                    if (s[MAX_USER * i + j] == '0')
                                         UpdateCheckBox(CheckBoxGameTables[i, j], false);
                                     else
                                         UpdateCheckBox(CheckBoxGameTables[i, j], true);
+                                }
                             receiveCmd = false;
                         }
                         break;
-                    case "position":
-                        //格式：position，棋子颜色，x,y,state
-                        //0表示黑色，1表示白色，棋子位置，state（0表示输，1表示赢，-1表示还没出结果）
-                        //int x = 20 * (int.Parse(splitString[2]) + 1);
-                        //int y = 20 * (int.Parse(splitString[3]) + 1);
-                        int x = Convert.ToInt32(info[2]);
-                        int y = Convert.ToInt32(info[3]);
-                        int color = int.Parse(info[1]);
-                        if (this.role != color)
-                        {
-                            formPlaying.IsClick = true;
-                        }
-                        else
-                        {
-                            formPlaying.IsClick = false;
-                        }
-                        formPlaying.Step(color, x, y, int.Parse(info[4]));
-                        break;
                     case "chat":
-                        formPlaying.SetListBox(info[2]);
+                        FrmPlay.service.SetListBox(info[2]);
                         break;
                 }
             }
@@ -175,16 +168,16 @@ namespace LSClient
                 label.Text = string.Format("第{0}桌：", i+1);
                 label.Width = 70;
                 this.panel1.Controls.Add(label);
-                for(int j=0;j<max_player;j++)
+                for(int j=0;j<MAX_USER;j++)
                 {
-                    int x = (j + 1) * 100;
+                    int x = (j + 1) * 60;
                     CheckBoxGameTables[i, j] = new CheckBox();
                     CheckBoxGameTables[i, j].Name = string.Format("check{0:0000}{1:0000}", i, j);
                     CheckBoxGameTables[i, j].Width = 60;
                     CheckBoxGameTables[i, j].Location = new Point(x, 10 + i * 30);
                     CheckBoxGameTables[i, j].Text = string.Format("第{0}位",j+1);
                     CheckBoxGameTables[i, j].TextAlign = ContentAlignment.MiddleLeft;
-                    if(s[max_player*i+j]=='1')
+                    if(s[MAX_USER*i+j]=='1')
                     {
                         CheckBoxGameTables[i, j].Enabled = false;
                         CheckBoxGameTables[i, j].Checked = true;
@@ -212,7 +205,7 @@ namespace LSClient
             {
                 int i = int.Parse(checkbox.Name.Substring(5, 4));
                 int j = int.Parse(checkbox.Name.Substring(9, 4));
-                side = j;
+                seat = j;
                 service.Send2Server(string.Format("SitDown,{0},{1}",i,j));
                 FrmPlay = new FrmPlay(i, j, sw);
                 FrmPlay.Show();
@@ -228,7 +221,7 @@ namespace LSClient
             }
             else
             {
-                if(side==-1)
+                if(seat==-1)
                     checkBox.Enabled= !isChecked;
                 else
                     checkBox.Enabled = false;

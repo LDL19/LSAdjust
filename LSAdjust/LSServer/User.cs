@@ -17,6 +17,8 @@ namespace LSServer
         public string userName;
 
         public bool isPlaying=false;
+        public int score;
+        public int status;
 
         public User(TcpClient client)
         {

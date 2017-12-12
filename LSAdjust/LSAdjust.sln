@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.10
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LSServer", "learnwuziqi\LSServer.csproj", "{40572A10-0FD1-4ED1-9C47-2A45CCF625B9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LSClient", "LSClient\LSClient.csproj", "{4BA7B063-8F8B-49F5-9867-D279B99BC41D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LSServer", "LSServer\LSServer.csproj", "{40572A10-0FD1-4ED1-9C47-2A45CCF625B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,6 +13,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4BA7B063-8F8B-49F5-9867-D279B99BC41D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BA7B063-8F8B-49F5-9867-D279B99BC41D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BA7B063-8F8B-49F5-9867-D279B99BC41D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BA7B063-8F8B-49F5-9867-D279B99BC41D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{40572A10-0FD1-4ED1-9C47-2A45CCF625B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{40572A10-0FD1-4ED1-9C47-2A45CCF625B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40572A10-0FD1-4ED1-9C47-2A45CCF625B9}.Release|Any CPU.ActiveCfg = Release|Any CPU

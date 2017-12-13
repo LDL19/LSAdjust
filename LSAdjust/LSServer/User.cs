@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.IO;
+using System.Threading;
 
 namespace LSServer
 {
@@ -15,8 +16,9 @@ namespace LSServer
         public StreamReader sr;
         public StreamWriter sw;
         public string userName;
+        public Thread threadReceive;
 
-        public bool isPlaying=false;
+        public bool ready=false;
         public int score;
         public int status;
 

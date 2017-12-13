@@ -19,11 +19,8 @@ namespace LSServer
         private Service service;
         int MAX_TABLE = 0;
         int SUM_USER;
-        private Table[] tables;
-        /// <summary>
-        /// 桌子表，里面有users表，相当于位子。
-        /// </summary>
-        System.Collections.Generic.List<User> userList = new List<User>();//创建user链表
+        private Table[] tables;//桌子表
+        System.Collections.Generic.List<User> userList = new List<User>();//创建user链表,因为还有一些users没入座。
 
         public FrmServer()
         {
@@ -57,7 +54,6 @@ namespace LSServer
             SUM_USER = MAX_TABLE * Table.MAX_USER;
             textBoxMaxUsers.Enabled = false;
             textBoxMaxTables.Enabled = false;//启动服务器后不可更改
-
             tables = new Table[MAX_TABLE];//创建桌子对象表
             for (int i = 0; i < MAX_TABLE; i++)
             {
@@ -91,24 +87,21 @@ namespace LSServer
                     break;
                 }
                 ParameterizedThreadStart pts = new ParameterizedThreadStart(ReceiveData);
-                Thread threadReceive = new Thread(pts);
-                threadReceive.IsBackground = true;
-                User user = new User(newClient);
-                threadReceive.Start(user);//将user作为参数传入
+                User user = new User(newClient);//将tcpclient用user封装。
+                user.threadReceive = new Thread(pts);
+                user.threadReceive.IsBackground = true;
+                user.threadReceive.Start(user);//将user作为参数传入
                 userList.Add(user);
                 service.SetListBox(string.Format("{0}进入", newClient.Client.RemoteEndPoint));
                 service.SetListBox(string.Format("当前连接用户数：{0}", userList.Count));
 
             }
         }
-        private void ReceiveData(object obj)
+        private void ReceiveData(object obj)//这个线程由一个user独有。
         {
             User user = (User)obj;
-            TcpClient tcpclient = user.client;
-            bool normalExit = false;
-            //是否正常退出线程
             bool exitWhile = false;
-            //用于控制是否退出循环
+            //用于控制是否退出循环，因为无法在switch中break掉循环
             while (exitWhile == false)
             {
                 string receiveStr = null;
@@ -124,25 +117,16 @@ namespace LSServer
                 //但是底层套接字未关闭，并不产生异常，但是读取的结果为null
                 if (receiveStr == null)
                 {
-                    if (normalExit == false)
-                    {
-                        if (tcpclient.Connected == true)
-                        {
-                            service.SetListBox(string.Format(
-                                "与{0}失去联系，已终止接收该用户信息",
-                                  tcpclient.Client.RemoteEndPoint));
-                        }
-                        //如果该用户正在游戏桌上，则退出游戏桌
-                        RemoveClientfromPlay(user);
-                    }
-                    break;
+                    service.SetListBox(string.Format("与{0}失去联系，已终止接收该用户信息",user.client.Client.RemoteEndPoint));
+                    //如果该用户正在游戏桌上，则退出游戏桌
+                    RemoveClientFromUser(user);//掉线，让他从桌子上离开。
+                    return;
                 }
                 service.SetListBox(string.Format("来自{0}:{1}", user.userName, receiveStr));
                 string[] info = receiveStr.Split(',');
                 int tableIndex = -1;//桌号
                 int seat = -1;//座位号
-                //int anotherSide = -1;//对方座位号
-                string sendString = "";
+                string sendStr = "";
                 //信息初始化
                 switch (info[0])//信息交换必须遵循关键词，信息的格式,具体格式在case中说明。
                 {
@@ -151,23 +135,22 @@ namespace LSServer
                         //刚刚登录
                         if (userList.Count > SUM_USER)
                         {
-                            sendString = "Sorry";
+                            sendStr = "Sorry";
                             service.SetListBox("人数已满，拒绝" + info[1] + "进入游戏室");
                             exitWhile = true;
                         }
                         else
                         {
-                            user.userName = string.Format("[{0}--{1}]", info[1], tcpclient.Client.RemoteEndPoint);
-                            //允许该客户进入游戏室，即将各桌是否有人的情况发给该用户
-                            sendString = "Tables," + this.GetSeatingChartStr()+","+MAX_TABLE;
-                            service.Send2User(user, sendString);
+                            user.userName = string.Format("[{0}--{1}]", info[1], user.client.Client.RemoteEndPoint);
+                            //允许该用户进入游戏室，即将各桌是否有人的情况发给该用户
+                            sendStr = "Tables," + this.GetSeatingChartStr()+","+MAX_TABLE;
+                            service.Send2User(user, sendStr);
                         }
                         break;
                     case "Logout":
                         //格式：Logout
                         //退出
-                        service.SetListBox(string.Format("{0}退出游戏室", user.userName));
-                        normalExit = true;
+                        service.SetListBox(string.Format("{0}退出游戏", user.userName));
                         exitWhile = true;
                         break;
                     case "SitDown":
@@ -183,13 +166,13 @@ namespace LSServer
                         for (int i = 0; i < Table.MAX_USER; i++)
                             if (tables[tableIndex].users[i] != null && tables[tableIndex].users[i]!=user)
                             {
-                                sendString = string.Format("SitDown,{0},{1}", i, tables[tableIndex].users[i].userName);
-                                service.Send2User(user, sendString);
+                                sendStr = string.Format("SitDown,{0},{1}", i, tables[tableIndex].users[i].userName);
+                                service.Send2User(user, sendStr);
                             }
                         //告诉本桌用户该用户入座(也可能对方无人）
                         //发送格式：SitDown, 座位号, 用户名
-                        sendString = string.Format("SitDown,{0},{1}", seat, user.userName);
-                        service.Send2Table(tables[tableIndex], sendString);
+                        sendStr = string.Format("SitDown,{0},{1}", seat, user.userName);
+                        service.Send2Table(tables[tableIndex], sendStr);
                         //重新将游戏室各桌情况发送给所有用户
                         service.Send2All(userList, "Tables," + this.GetSeatingChartStr());
                         break;
@@ -198,32 +181,20 @@ namespace LSServer
                         //该用户单击了开始按钮
                         tableIndex = int.Parse(info[1]);
                         seat = int.Parse(info[2]);
-                        tables[tableIndex].users[seat].isPlaying = true;
+                        tables[tableIndex].users[seat].ready = true;
                         //添加sendString..............
 
-
-                        //if (seat == 0)
-                        //{
-                        //    anotherSide = 1;
-                        //    sendString = "Message," + startCout + ",黑方已经开始";
-                        //}
-                        //else
-                        //{
-                        //    anotherSide = 0;
-                        //    sendString = "Message," + startCout + ",白方已经开始";
-                        //}
-                        service.Send2Table(tables[tableIndex], sendString);
-
                         //如果本桌每个人都开始了，就开始发牌deal...........
-                        sendString = "Deal";
+                        sendStr = "Deal";
+                        service.Send2Table(tables[tableIndex], sendStr);
                         break;
                     case "chat":
                         //格式：chat,桌号，对话内容
                         tableIndex = int.Parse(info[1]);
                         //说的话可能包含逗号
-                        sendString = string.Format("chat,{0},{1}", user.userName, info[2]);
+                        sendStr = string.Format("chat,{0},{1}", user.userName, info[2]);
                         //格式：chat，userName,说话内容
-                        service.Send2Table(tables[tableIndex], sendString);
+                        service.Send2Table(tables[tableIndex], sendStr);
                         break;
 
                 }
@@ -231,43 +202,18 @@ namespace LSServer
         }
 
 
-        private void RemoveClientfromPlay(User user)//一方中途逃跑
+        private void RemoveClientFromUser(User user)//掉线了
         {
             for (int i = 0; i < tables.Length; i++)
-            {
                 for (int j = 0; j <Table.MAX_USER; j++)
-                {
-                    if (tables[i].users[j] != null)
+                    if (tables[i].users[j] == user)
                     {
-                        if (tables[i].users[j] == user)
-                        {
-                            StopPlayer(i, j);
-                            return;
-                        }
+                        //table[i].StopTimer();
+                        //发送格式：Lost,座位号,用户名
+                        tables[i].users[j] = null;
+                        service.Send2Table(tables[i], string.Format("Lost,{0},{1}", j, user.userName),j);
+                        return;
                     }
-                }
-            }
-        }
-
-        //停止第i桌游戏
-        private void StopPlayer(int i, int j)
-        {
-            //table[i].StopTimer();
-            tables[i].users[j].isPlaying = false;
-            tables[i].users[j] = null;
-            int otherSide = (j + 1) % 2;
-            if (tables[i].users[otherSide]!=null)
-            {
-                if (tables[i].users[otherSide].client.Connected == true)
-                {
-                    //发送格式：Lost,座位号,用户名
-                    service.Send2User(tables[i].users[otherSide],
-                    string.Format("Lost,{0},{1}",
-                    j, tables[i].users[j].userName));
-
-                }
-                tables[i].users[otherSide] = null;
-            }
         }
         private string GetSeatingChartStr()
         ///得到每个位子是否有人，输出一个01字符串
@@ -282,6 +228,7 @@ namespace LSServer
             }
             return str;
         }
+
         private void btnStop_Click(object sender, EventArgs e)
         {
             service.SetListBox(string.Format("目前连接用户数:{0}", userList.Count));
@@ -289,6 +236,7 @@ namespace LSServer
             for (int i = 0; i < userList.Count; i++)
             {
                 userList[i].client.Close();
+                userList[i].threadReceive.Abort();
             }
             myListener.Stop();
             btnStart.Enabled = true;

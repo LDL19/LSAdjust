@@ -43,15 +43,15 @@
             // 
             this.listBox1.FormattingEnabled = true;
             this.listBox1.ItemHeight = 15;
-            this.listBox1.Location = new System.Drawing.Point(13, 13);
+            this.listBox1.Location = new System.Drawing.Point(13, 8);
             this.listBox1.Margin = new System.Windows.Forms.Padding(4);
             this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(817, 274);
+            this.listBox1.Size = new System.Drawing.Size(630, 454);
             this.listBox1.TabIndex = 1;
             // 
             // textBoxMaxUsers
             // 
-            this.textBoxMaxUsers.Location = new System.Drawing.Point(538, 340);
+            this.textBoxMaxUsers.Location = new System.Drawing.Point(770, 339);
             this.textBoxMaxUsers.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxMaxUsers.Name = "textBoxMaxUsers";
             this.textBoxMaxUsers.Size = new System.Drawing.Size(60, 25);
@@ -60,7 +60,7 @@
             // 
             // textBoxMaxTables
             // 
-            this.textBoxMaxTables.Location = new System.Drawing.Point(538, 307);
+            this.textBoxMaxTables.Location = new System.Drawing.Point(769, 306);
             this.textBoxMaxTables.Margin = new System.Windows.Forms.Padding(4);
             this.textBoxMaxTables.Name = "textBoxMaxTables";
             this.textBoxMaxTables.Size = new System.Drawing.Size(61, 25);
@@ -69,10 +69,10 @@
             // 
             // btnStart
             // 
-            this.btnStart.Location = new System.Drawing.Point(209, 366);
+            this.btnStart.Location = new System.Drawing.Point(681, 13);
             this.btnStart.Margin = new System.Windows.Forms.Padding(4);
             this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(153, 61);
+            this.btnStart.Size = new System.Drawing.Size(149, 61);
             this.btnStart.TabIndex = 10;
             this.btnStart.Text = "启动服务";
             this.btnStart.UseVisualStyleBackColor = true;
@@ -80,7 +80,7 @@
             // 
             // btnStop
             // 
-            this.btnStop.Location = new System.Drawing.Point(370, 366);
+            this.btnStop.Location = new System.Drawing.Point(681, 92);
             this.btnStop.Margin = new System.Windows.Forms.Padding(4);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(149, 61);
@@ -92,7 +92,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(466, 310);
+            this.label1.Location = new System.Drawing.Point(725, 309);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(37, 15);
             this.label1.TabIndex = 12;
@@ -101,7 +101,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(406, 339);
+            this.label2.Location = new System.Drawing.Point(665, 339);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(97, 15);
             this.label2.TabIndex = 13;
@@ -109,16 +109,16 @@
             // 
             // textBoxPort
             // 
-            this.textBoxPort.Location = new System.Drawing.Point(156, 310);
+            this.textBoxPort.Location = new System.Drawing.Point(768, 266);
             this.textBoxPort.Name = "textBoxPort";
-            this.textBoxPort.Size = new System.Drawing.Size(100, 25);
+            this.textBoxPort.Size = new System.Drawing.Size(62, 25);
             this.textBoxPort.TabIndex = 14;
             this.textBoxPort.Text = "51888";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(69, 313);
+            this.label3.Location = new System.Drawing.Point(695, 276);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(67, 15);
             this.label3.TabIndex = 15;
@@ -139,7 +139,7 @@
             this.Controls.Add(this.textBoxMaxUsers);
             this.Controls.Add(this.listBox1);
             this.Name = "FrmServer";
-            this.Text = "Form1";
+            this.Text = "眼神平差大师服务器";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FrmServer_FormClosing);
             this.Load += new System.EventHandler(this.FrmServer_Load);
             this.ResumeLayout(false);

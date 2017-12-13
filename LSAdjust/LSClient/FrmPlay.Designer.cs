@@ -32,14 +32,17 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.buttonSend = new System.Windows.Forms.Button();
             this.panel = new System.Windows.Forms.PictureBox();
-            this.btnStart = new System.Windows.Forms.Button();
-            this.btnRestart = new System.Windows.Forms.Button();
+            this.btnReady = new System.Windows.Forms.Button();
+            this.btnExit = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.textBox3 = new System.Windows.Forms.TextBox();
             this.textBox4 = new System.Windows.Forms.TextBox();
+            this.btnDraw = new System.Windows.Forms.Button();
+            this.btnFinish = new System.Windows.Forms.Button();
+            this.label4 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.panel)).BeginInit();
             this.SuspendLayout();
             // 
@@ -47,27 +50,27 @@
             // 
             this.listBox1.FormattingEnabled = true;
             this.listBox1.ItemHeight = 15;
-            this.listBox1.Location = new System.Drawing.Point(597, 13);
+            this.listBox1.Location = new System.Drawing.Point(669, 45);
             this.listBox1.Margin = new System.Windows.Forms.Padding(4);
             this.listBox1.Name = "listBox1";
-            this.listBox1.Size = new System.Drawing.Size(220, 274);
+            this.listBox1.Size = new System.Drawing.Size(230, 424);
             this.listBox1.TabIndex = 1;
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(597, 306);
+            this.textBox1.Location = new System.Drawing.Point(669, 477);
             this.textBox1.Margin = new System.Windows.Forms.Padding(4);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(220, 44);
+            this.textBox1.Size = new System.Drawing.Size(230, 44);
             this.textBox1.TabIndex = 7;
             // 
             // buttonSend
             // 
-            this.buttonSend.Location = new System.Drawing.Point(597, 358);
+            this.buttonSend.Location = new System.Drawing.Point(679, 529);
             this.buttonSend.Margin = new System.Windows.Forms.Padding(4);
             this.buttonSend.Name = "buttonSend";
-            this.buttonSend.Size = new System.Drawing.Size(100, 29);
+            this.buttonSend.Size = new System.Drawing.Size(84, 29);
             this.buttonSend.TabIndex = 8;
             this.buttonSend.Text = "发送";
             this.buttonSend.UseVisualStyleBackColor = true;
@@ -77,29 +80,30 @@
             this.panel.Location = new System.Drawing.Point(13, 41);
             this.panel.Margin = new System.Windows.Forms.Padding(4);
             this.panel.Name = "panel";
-            this.panel.Size = new System.Drawing.Size(576, 337);
+            this.panel.Size = new System.Drawing.Size(638, 460);
             this.panel.TabIndex = 9;
             this.panel.TabStop = false;
             // 
-            // btnStart
+            // btnReady
             // 
-            this.btnStart.Location = new System.Drawing.Point(13, 386);
-            this.btnStart.Margin = new System.Windows.Forms.Padding(4);
-            this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(100, 49);
-            this.btnStart.TabIndex = 10;
-            this.btnStart.Text = "开始";
-            this.btnStart.UseVisualStyleBackColor = true;
+            this.btnReady.Location = new System.Drawing.Point(24, 509);
+            this.btnReady.Margin = new System.Windows.Forms.Padding(4);
+            this.btnReady.Name = "btnReady";
+            this.btnReady.Size = new System.Drawing.Size(100, 49);
+            this.btnReady.TabIndex = 10;
+            this.btnReady.Text = "准备";
+            this.btnReady.UseVisualStyleBackColor = true;
             // 
-            // btnRestart
+            // btnExit
             // 
-            this.btnRestart.Location = new System.Drawing.Point(132, 386);
-            this.btnRestart.Margin = new System.Windows.Forms.Padding(4);
-            this.btnRestart.Name = "btnRestart";
-            this.btnRestart.Size = new System.Drawing.Size(100, 49);
-            this.btnRestart.TabIndex = 11;
-            this.btnRestart.Text = "重新开始";
-            this.btnRestart.UseVisualStyleBackColor = true;
+            this.btnExit.Location = new System.Drawing.Point(551, 509);
+            this.btnExit.Margin = new System.Windows.Forms.Padding(4);
+            this.btnExit.Name = "btnExit";
+            this.btnExit.Size = new System.Drawing.Size(100, 49);
+            this.btnExit.TabIndex = 11;
+            this.btnExit.Text = "离开";
+            this.btnExit.UseVisualStyleBackColor = true;
+            this.btnExit.Click += new System.EventHandler(this.btnExit_Click);
             // 
             // label1
             // 
@@ -112,7 +116,7 @@
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(64, 9);
+            this.textBox2.Location = new System.Drawing.Point(64, 5);
             this.textBox2.Name = "textBox2";
             this.textBox2.ReadOnly = true;
             this.textBox2.Size = new System.Drawing.Size(67, 25);
@@ -128,11 +132,12 @@
             this.label2.Size = new System.Drawing.Size(45, 15);
             this.label2.TabIndex = 14;
             this.label2.Text = " 积分";
+            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(320, 13);
+            this.label3.Location = new System.Drawing.Point(309, 13);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(45, 15);
             this.label3.TabIndex = 15;
@@ -140,7 +145,7 @@
             // 
             // textBox3
             // 
-            this.textBox3.Location = new System.Drawing.Point(208, 9);
+            this.textBox3.Location = new System.Drawing.Point(208, 5);
             this.textBox3.Name = "textBox3";
             this.textBox3.ReadOnly = true;
             this.textBox3.Size = new System.Drawing.Size(78, 25);
@@ -150,27 +155,57 @@
             // 
             // textBox4
             // 
-            this.textBox4.Location = new System.Drawing.Point(371, 10);
+            this.textBox4.Location = new System.Drawing.Point(371, 5);
             this.textBox4.Name = "textBox4";
             this.textBox4.ReadOnly = true;
-            this.textBox4.Size = new System.Drawing.Size(100, 25);
+            this.textBox4.Size = new System.Drawing.Size(86, 25);
             this.textBox4.TabIndex = 17;
             this.textBox4.Text = "1/5";
             this.textBox4.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // btnDraw
+            // 
+            this.btnDraw.Location = new System.Drawing.Point(131, 509);
+            this.btnDraw.Name = "btnDraw";
+            this.btnDraw.Size = new System.Drawing.Size(89, 49);
+            this.btnDraw.TabIndex = 18;
+            this.btnDraw.Text = "重绘";
+            this.btnDraw.UseVisualStyleBackColor = true;
+            // 
+            // btnFinish
+            // 
+            this.btnFinish.Location = new System.Drawing.Point(440, 510);
+            this.btnFinish.Name = "btnFinish";
+            this.btnFinish.Size = new System.Drawing.Size(104, 49);
+            this.btnFinish.TabIndex = 19;
+            this.btnFinish.Text = "提交";
+            this.btnFinish.UseVisualStyleBackColor = true;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(669, 23);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(67, 15);
+            this.label4.TabIndex = 20;
+            this.label4.Text = "聊天信息";
             // 
             // FrmPlay
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(830, 448);
+            this.ClientSize = new System.Drawing.Size(912, 571);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.btnFinish);
+            this.Controls.Add(this.btnDraw);
             this.Controls.Add(this.textBox4);
             this.Controls.Add(this.textBox3);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.btnRestart);
-            this.Controls.Add(this.btnStart);
+            this.Controls.Add(this.btnExit);
+            this.Controls.Add(this.btnReady);
             this.Controls.Add(this.panel);
             this.Controls.Add(this.buttonSend);
             this.Controls.Add(this.textBox1);
@@ -189,13 +224,16 @@
         public System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Button buttonSend;
         private System.Windows.Forms.PictureBox panel;
-        private System.Windows.Forms.Button btnStart;
-        private System.Windows.Forms.Button btnRestart;
+        private System.Windows.Forms.Button btnReady;
+        private System.Windows.Forms.Button btnExit;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox textBox3;
         private System.Windows.Forms.TextBox textBox4;
+        private System.Windows.Forms.Button btnDraw;
+        private System.Windows.Forms.Button btnFinish;
+        private System.Windows.Forms.Label label4;
     }
 }

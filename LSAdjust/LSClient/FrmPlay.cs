@@ -19,5 +19,20 @@ namespace LSClient
             InitializeComponent();
             service = new Service(listBox1,sw);
         }
+
+        private void btnExit_Click(object sender, EventArgs e)
+        {
+            MessageBoxButtons buttons = MessageBoxButtons.YesNo;
+            DialogResult result = MessageBox.Show("确定要离开吗？", "离开", buttons);
+            if(result==DialogResult.OK)
+            {
+
+            }
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

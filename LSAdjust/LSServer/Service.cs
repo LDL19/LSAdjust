@@ -21,9 +21,7 @@ namespace LSServer
         public void SetListBox(string str)
         {
             if(listbox.InvokeRequired)//在主线程之外调用
-            {
                 listbox.Invoke(setListBoxCallback, str);//在主线程触发该函数。
-            }
             else
             {
                 listbox.Items.Add(str);
@@ -47,20 +45,14 @@ namespace LSServer
         public void Send2Table(Table gameTable,string str,int exceptindex=-1)
         {
             for(int i=0;i<Table.MAX_USER;i++)
-            {
                 if(gameTable.users[i]!=null && i!=exceptindex)
-                {
                     Send2User(gameTable.users[i],str);
-                }
-            }
         }
 
         public void Send2All(List<User> userList,string str)
         {
             for(int i=0;i<userList.Count;i++)
-            {
                 Send2User(userList[i], str);
-            }
         }
     } 
 }

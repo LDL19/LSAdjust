@@ -74,6 +74,7 @@
             this.buttonSend.TabIndex = 8;
             this.buttonSend.Text = "发送";
             this.buttonSend.UseVisualStyleBackColor = true;
+            this.buttonSend.Click += new System.EventHandler(this.buttonSend_Click);
             // 
             // panel
             // 

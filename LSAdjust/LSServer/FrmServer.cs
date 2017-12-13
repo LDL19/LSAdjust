@@ -102,7 +102,7 @@ namespace LSServer
             User user = (User)obj;
             bool exitWhile = false;
             //用于控制是否退出循环，因为无法在switch中break掉循环
-            while (exitWhile == false)
+            while (!exitWhile )
             {
                 string receiveStr = null;
                 try
@@ -141,9 +141,9 @@ namespace LSServer
                         }
                         else
                         {
-                            user.userName = string.Format("[{0}--{1}]", info[1], user.client.Client.RemoteEndPoint);
+                            user.userName = string.Format(info[1]);
                             //允许该用户进入游戏室，即将各桌是否有人的情况发给该用户
-                            sendStr = "Tables," + this.GetSeatingChartStr()+","+MAX_TABLE;
+                            sendStr = "Table," + this.GetSeatingChartStr()+","+MAX_TABLE;
                             service.Send2User(user, sendStr);
                         }
                         break;
@@ -162,19 +162,19 @@ namespace LSServer
                         //table[tableIndex].players[side].people = true;
                         service.SetListBox(string.Format("{0}在第{1}桌第{2}座入座", user.userName, tableIndex + 1, seat + 1));
                         //先告诉该用户其余人是否入座
-                        //发送格式：SitDown,座位号，用户名
+                        //发送格式：Message,消息内容
                         for (int i = 0; i < Table.MAX_USER; i++)
                             if (tables[tableIndex].users[i] != null && tables[tableIndex].users[i]!=user)
                             {
-                                sendStr = string.Format("SitDown,{0},{1}", i, tables[tableIndex].users[i].userName);
+                                sendStr = string.Format("Message,"+string.Format("{0}在第{1}座入座",tables[tableIndex].users[i].userName,i+1));
                                 service.Send2User(user, sendStr);
                             }
-                        //告诉本桌用户该用户入座(也可能对方无人）
+                        //告诉本桌其他用户该用户入座(也可能对方无人）
                         //发送格式：SitDown, 座位号, 用户名
-                        sendStr = string.Format("SitDown,{0},{1}", seat, user.userName);
-                        service.Send2Table(tables[tableIndex], sendStr);
+                        sendStr = string.Format("Message,{0}在第{1}座入座", user.userName, seat + 1);
+                        service.Send2Table(tables[tableIndex], sendStr,seat);
                         //重新将游戏室各桌情况发送给所有用户
-                        service.Send2All(userList, "Tables," + this.GetSeatingChartStr());
+                        service.Send2All(userList, "TableChange," + tableIndex+','+seat+",1");
                         break;
                     case "Start":
                         //格式：Start,桌号，座位号
@@ -188,11 +188,11 @@ namespace LSServer
                         sendStr = "Deal";
                         service.Send2Table(tables[tableIndex], sendStr);
                         break;
-                    case "chat":
+                    case "Chat":
                         //格式：chat,桌号，对话内容
                         tableIndex = int.Parse(info[1]);
                         //说的话可能包含逗号
-                        sendStr = string.Format("chat,{0},{1}", user.userName, info[2]);
+                        sendStr = string.Format("Chat,{0},{1}", user.userName, info[2]);
                         //格式：chat，userName,说话内容
                         service.Send2Table(tables[tableIndex], sendStr);
                         break;
@@ -231,7 +231,7 @@ namespace LSServer
 
         private void btnStop_Click(object sender, EventArgs e)
         {
-            service.SetListBox(string.Format("目前连接用户数:{0}", userList.Count));
+            service.SetListBox(string.Format("当前连接用户数:{0}", userList.Count));
             service.SetListBox("开始停止服务，并依此使用用户退出");
             for (int i = 0; i < userList.Count; i++)
             {

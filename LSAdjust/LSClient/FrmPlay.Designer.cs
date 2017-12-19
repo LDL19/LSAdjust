@@ -94,6 +94,7 @@
             this.btnReady.TabIndex = 10;
             this.btnReady.Text = "准备";
             this.btnReady.UseVisualStyleBackColor = true;
+            this.btnReady.Click += new System.EventHandler(this.btnReady_Click);
             // 
             // btnExit
             // 
@@ -124,6 +125,7 @@
             this.textBox2.TabIndex = 13;
             this.textBox2.Text = "1";
             this.textBox2.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
             // 
             // label2
             // 
@@ -172,6 +174,7 @@
             this.btnDraw.TabIndex = 18;
             this.btnDraw.Text = "重绘";
             this.btnDraw.UseVisualStyleBackColor = true;
+            this.btnDraw.Click += new System.EventHandler(this.btnDraw_Click);
             // 
             // btnFinish
             // 
@@ -181,6 +184,7 @@
             this.btnFinish.TabIndex = 19;
             this.btnFinish.Text = "提交";
             this.btnFinish.UseVisualStyleBackColor = true;
+            this.btnFinish.Click += new System.EventHandler(this.btnFinish_Click);
             // 
             // label4
             // 

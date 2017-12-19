@@ -188,6 +188,8 @@ namespace LSServer
                         sendStr = "Deal";
                         service.Send2Table(tables[tableIndex], sendStr);
                         break;
+                    case "Finish":
+
                     case "Chat":
                         //格式：chat,桌号，对话内容
                         tableIndex = int.Parse(info[1]);

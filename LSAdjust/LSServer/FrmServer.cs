@@ -150,8 +150,16 @@ namespace LSServer
                     case "Logout":
                         //格式：Logout
                         //退出
-                        service.SetListBox(string.Format("{0}退出游戏", user.userName));
-                        exitWhile = true;
+                        {
+                            service.SetListBox(string.Format("{0}退出游戏", user.userName));
+                         
+                           
+                           sendStr = "你已经退出游戏";
+                            service.Send2User(user, sendStr); 
+                            userList.Remove(user);
+                            RemoveClientFromUser(user);//退出，让他从桌子上离开。 
+                            exitWhile = true;
+                        }
                         break;
                     case "SitDown":
                         //格式：SitDown,桌号，座位号

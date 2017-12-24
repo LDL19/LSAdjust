@@ -22,6 +22,11 @@ namespace LSServer
         private Table[] tables;//桌子表
         System.Collections.Generic.List<User> userList = new List<User>();//创建user链表,因为还有一些users没入座。
 
+        //int ch = 1; Point[] point = null; Point cpoint; double a = 0; double b = 0; double c = 0; double p = 0;Point [] point3;Point[] point4;      //模型参数定义为全局变量
+        //int ch1 = 1; Point[] point1 = null; Point[] point2 = null; Point cpoint1; double a1 = 0; double b1 = 0; double c1 = 0; double p1 = 0;
+        //int n = 1;                    //所处关数，以此来确定发送散点类型
+
+
         public FrmServer()
         {
             InitializeComponent();
@@ -35,7 +40,7 @@ namespace LSServer
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            if (int.TryParse(textBoxMaxTables.Text, out MAX_TABLE) == false
+             if (int.TryParse(textBoxMaxTables.Text, out MAX_TABLE) == false
                || int.TryParse(textBoxMaxUsers.Text, out Table.MAX_USER) == false)
             {
                 MessageBox.Show("请输入规定范围内的整数"); return;
@@ -99,6 +104,7 @@ namespace LSServer
         }
         private void ReceiveData(object obj)//这个线程由一个user独有。
         {
+            
             User user = (User)obj;
             bool exitWhile = false;
             //用于控制是否退出循环，因为无法在switch中break掉循环
@@ -150,16 +156,12 @@ namespace LSServer
                     case "Logout":
                         //格式：Logout
                         //退出
-                        {
-                            service.SetListBox(string.Format("{0}退出游戏", user.userName));
-                         
-                           
-                           sendStr = "你已经退出游戏";
-                            service.Send2User(user, sendStr); 
-                            userList.Remove(user);
-                            RemoveClientFromUser(user);//退出，让他从桌子上离开。 
-                            exitWhile = true;
-                        }
+                        service.SetListBox(string.Format("{0}退出游戏", user.userName));
+                        sendStr = "你已经退出游戏";
+                        service.Send2User(user, sendStr);
+                        userList.Remove(user);
+                        RemoveClientFromUser(user);
+                        exitWhile = true;
                         break;
                     case "SitDown":
                         //格式：SitDown,桌号，座位号
@@ -193,11 +195,89 @@ namespace LSServer
                         //添加sendString..............
 
                         //如果本桌每个人都开始了，就开始发牌deal...........
-                        sendStr = "Deal";
-                        service.Send2Table(tables[tableIndex], sendStr);
+                        int sumReady = 0;
+                        for (int i = 0; i < Table.MAX_USER; i++)
+                            if(tables[tableIndex].users[i]!=null)
+                                if (tables[tableIndex].users[i].ready)
+                                    sumReady++;
+                        if(sumReady==Table.MAX_USER)
+                        {
+                            sendStr = "Deal";
+                            PointF[] points = tables[tableIndex].Cal_Line();
+                            int sum = points.Length;
+                            sendStr += ',' + sum.ToString();
+                            for (int i=0;i<sum;i++)
+                            {
+                                string x = points[i].X.ToString();
+                                string y = points[i].Y.ToString();
+                                sendStr += ',' + x + ',' + y;
+
+                            }
+                            service.Send2Table(tables[tableIndex], sendStr);
+                        }
+                        
+                        //if (n < 4)
+                        //    ch = 1;      //1-3关
+                        //else if (n > 3 || n < 6)
+                        //    ch = 2;      // 4-5关
+                        //else if(n>5||n<10)
+                        //    ch = 3;       //6-9关
+
+                        //Cal_point(ch, point, cpoint, a, b, c, p);
+                        //for (int i = 0; i < 30; i++)             //将点传输出去
+                        //{
+                        //    sendStr +=(point[i].ToString()+"\r\n");
+                        //}
+                        //service.Send2Table(tables[tableIndex], sendStr);
+                                                                          
+                        //Cal_Huigui(point,point3);                                                //此处还得添加一个函数，根据散点计算样本拟合线，再传回线上的点point[]
+
                         break;
                     case "Finish":
+                        tableIndex = int.Parse(info[1]);
+                        seat = int.Parse(info[2]);
 
+                        ////int ch1=1; Point[] point1=null;Point [] point2=null; Point cpoint1; double a1=0; double b1=0; double c1=0; double p1=0;
+
+                        ////?????此处是需for循环读取每个玩家传回的数据吗？由于没看太懂你写的通讯代码，恳请炜哥改正
+
+                        //receiveStr = user.sr.ReadLine();//从流中读取一行，第一，二行为确定直线或准线的两个点
+                        ////字符串长度暂定为5，如有其它读取点坐标的方法，再做改正！！！！
+                        //point1[0].X =int.Parse( receiveStr.Substring(0,5));      //读取第一个点
+                        //point1[0].Y = int.Parse(receiveStr.Substring(5, 5));
+
+                        //receiveStr = user.sr.ReadLine();
+                        //point1[1].X =int.Parse( receiveStr.Substring(0,5));     //读取第二个点
+                        //point1[1].Y = int.Parse(receiveStr.Substring(5, 5));
+
+                        //receiveStr = user.sr.ReadLine();
+                        //cpoint1.X =int.Parse( receiveStr.Substring(0,5)); //读取焦点
+                        //cpoint1.Y = int.Parse(receiveStr.Substring(5, 5));
+
+                        //if (n < 4)
+                        //{
+                        //    ch1 = 1;   
+                        //    point4=point3;
+                        //}//1-3关
+                        //else if (n > 3 || n < 6)
+                        //{
+                        //    ch1 = 2;      // 4-5关
+                        //    point4 = point;                   //！！！！回归分析只能对直线问题进行平差，当为抛物线时，残差平方和只能与原模型所对应的点进行计算
+                        //}
+                        //else if (n > 5 || n < 10)
+                        //{
+                        //    ch1 = 3;       //6-9关
+                        //    point4 = point;
+                        //}
+                        //Cal_Line(ch1,point1,point2,cpoint,a1, b1,  c1,  p1) ;      //根据传回的点恢复模型参数并计算点坐标
+
+                        //int dist=0;
+                        //Cal_dis(point4, point2, dist);       //计算残差平方和
+                        //sendStr = ("Deal" + dist.ToString());
+                        //service.Send2Table(tables[tableIndex], sendStr);    //传回积分
+
+                        //n = n + 1;        //通关，进入下一关
+                        break;
                     case "Chat":
                         //格式：chat,桌号，对话内容
                         tableIndex = int.Parse(info[1]);
@@ -261,6 +341,16 @@ namespace LSServer
             {
                 btnStop_Click(null, null);
             }
+        }
+
+        /// <summary>
+        /// 仅用于测试一些功能，正式发布的时候会删除。
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Matrix.TestMatirx();
         }
     }
 }

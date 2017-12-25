@@ -17,9 +17,8 @@ namespace LSClient
         private int tableIndex;
         private int seat;
         public Service service;
-        public double[] ReceivePoints;//点
-        public PointF[] ReceivePoint; //点
-        public double[] ReceiveBox;
+        //public PointF[] ReceivePoint; //点
+        //public double[] ReceiveBox;
         public bool BeginGame=false;//在接收deal之后变成true
       //边界盒
         bool btnFinishflag = false;
@@ -182,6 +181,8 @@ namespace LSClient
    
         private void FrmPlay_Load(object sender, EventArgs e)
         {
+
+
             w = DrawPanel.Width;
             h = DrawPanel.Height;
             detaY = 0;
@@ -438,7 +439,7 @@ namespace LSClient
             }
             else { }
         }
-        private void DrawPanel_Paint(object sender, PaintEventArgs e)
+        public void DrawPanel_Paint(object sender, PaintEventArgs e)
         {
             Graphics g;
             g = e.Graphics;

@@ -35,9 +35,17 @@ namespace LSClient
         private FrmPlay FrmPlay;
         private Thread threadReceive;
         private int numPoints;//点的数量
-        private PointF[] point; //点
-        double[] points;//点
-        double[] box;//边界盒
+        public PointF[] points; //点
+
+        public struct Box
+        {
+            public float Xmin;
+            public float Ymin;
+            public float Xmax;
+            public float Ymax;
+        }
+        public Box box;
+
         private Process[] MyProcesses;  //希望实时监测frmplay
   
        
@@ -157,37 +165,39 @@ namespace LSClient
                         break;
                     case "Deal":
                         numPoints = Convert.ToInt32(info[1]);
-                        points = new double[numPoints * 2];
-                        point = new PointF[numPoints];
+                        points = new PointF[numPoints];
                         //point
-                        for (int itemp = 2; itemp < info.Length; itemp++)
+                        int aa;
+                        for (int i = 2; i < info.Length; i+=2)
                         {
-                            points[itemp - 2] = Convert.ToSingle(info[itemp]);
+                            aa = i / 2;
+                            points[aa].X = Convert.ToSingle(info[i]);
+                            points[aa].Y = Convert.ToSingle(info[i + 1]);
                         }
-                        for( int itemp=2;itemp<(numPoints+2);itemp+=2)
-                        {
-
-                           int SequenceNumber=(itemp-2)/2;
-                          point[SequenceNumber].X= Convert.ToSingle(info[itemp]);
-                          point[SequenceNumber].Y = Convert.ToSingle(info[itemp + 1]);
-                        }
-                        box = new double[4];
-                        box[0] = point[0].X;//xmin
-                         box[1] = point[0].Y; //ymin
-                          box[2] = point[0].X;//xmax
-                         box[3] = point[0].Y; //ymax
-                    //选取边界盒
-                        for (int itemp = 1; itemp < numPoints; itemp++)
-                        { if (point[itemp].X < box[0])box[0] = point[itemp].X;
-                        if (point[itemp].Y < box[1]) box[1] = point[itemp].Y;
-                        if (point[itemp].X > box[0]) box[2] = point[itemp].X;
-                        if (point[itemp].Y > box[0]) box[3] = point[itemp].Y;
-                        }
-                        FrmPlay.ReceiveBox = box;
-                        FrmPlay.ReceivePoint = point;
-                        FrmPlay.ReceivePoints = points;
+                        GetBoundingBox(points);
                         FrmPlay.BeginGame = true;
+                        FrmRoom.
                         break;
+                }
+            }
+        }
+
+        public void GetBoundingBox(PointF[] points)
+        {
+            object thislock = new object();
+            lock (thislock) //这是通过监听线程访问的，防止别的线程访问box，先将它锁住。
+            {
+                box.Xmin = points[0].X;
+                box.Xmax = points[0].X;
+                box.Ymin = points[0].Y;
+                box.Ymax = points[0].Y;
+                //选取边界盒
+                for (int i = 1; i < numPoints; i++)
+                {
+                    if (points[i].X < box.Xmin) box.Xmin = points[i].X;
+                    if (points[i].Y < box.Ymin) box.Ymin = points[i].Y;
+                    if (points[i].X > box.Xmax) box.Xmax = points[i].X;
+                    if (points[i].Y > box.Ymax) box.Ymax = points[i].Y;
                 }
             }
         }

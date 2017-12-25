@@ -157,8 +157,8 @@ namespace LSServer
                         //格式：Logout
                         //退出
                         service.SetListBox(string.Format("{0}退出游戏", user.userName));
-                        sendStr = "你已经退出游戏";
-                        service.Send2User(user, sendStr);
+                        // sendStr = "你已经退出游戏";
+                        // service.Send2User(user, sendStr);
                         userList.Remove(user);
                         RemoveClientFromUser(user);
                         exitWhile = true;
@@ -187,7 +187,7 @@ namespace LSServer
                         service.Send2All(userList, "TableChange," + tableIndex+','+seat+",1");
                         break;
                     case "Start":
-                        //格式：Start,桌号，座位号
+                        //格式：Start,关数
                         //该用户单击了开始按钮
                         tableIndex = int.Parse(info[1]);
                         seat = int.Parse(info[2]);

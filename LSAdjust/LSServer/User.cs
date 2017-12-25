@@ -30,5 +30,11 @@ namespace LSServer
             sr = new StreamReader(ns, System.Text.Encoding.UTF8);
             sw = new StreamWriter(ns, System.Text.Encoding.UTF8);
         }
+        public void Close()
+        {
+            sr.Close();
+            sw.Close();
+            client.Close();
+        }
     }
 }

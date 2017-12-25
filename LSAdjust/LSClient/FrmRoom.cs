@@ -11,11 +11,14 @@ using System.Threading;
 using System.Net;
 using System.IO;
 using System.Net.Sockets;
-
+using System.Diagnostics;//引入Process 类 
+using System.Timers;
 namespace LSClient
 {
     public partial class FrmRoom : Form
     {
+        //目前想到，但是目前没有改正的问题：
+        //checkbox的状态不是很灵敏
         private TcpClient client = null;
         private StreamReader sr;
         private StreamWriter sw;
@@ -31,15 +34,31 @@ namespace LSClient
         private CheckBox[,] CheckBoxGameTables;//注意为了不引发checkchanged事件，在写代码的时候注意保护
         private FrmPlay FrmPlay;
         private Thread threadReceive;
-        
+        private int pointnum;//点的数量
+       private PointF[] point; //点
+        double[] points;//点
+        double[] box;//边界盒
+        private Process[] MyProcesses;  //希望实时监测frmplay
+  
+       
         public FrmRoom()
         {
             InitializeComponent();
         }
 
+        public void scout(object obj)
+        {
+            //关闭窗体就改变check的状态
+        }
+            //定义一个代理
+       
+
+ 
+        private System.Threading.Timer threadTimer;// = new System.Threading.Timer(new System.Threading.TimerCallback(FrmRoom.), null, 0, 100);//监测
         private void FrmRoom_Load(object sender, EventArgs e)
         {
            // FrmPlay.Owner = this;
+ //   threadTimer = new System.Threading.Timer(new System.Threading.TimerCallback(scout), null, 0, 10000);
         }
 
         private void btnLogin_Click(object sender, EventArgs e)
@@ -133,7 +152,41 @@ namespace LSClient
                     case "Chat"://收到chat
                         FrmPlay.service.SetListBox(info[1] + "说:" + info[2]);
                         break;
+                    case "End":
+                        FrmPlay.service.SetListBox("服务器断开");
+                        break;
+                    case "Deal":
+                        pointnum = Convert.ToInt32(info[1]);
 
+                        //point
+                        for (int itemp = 2; itemp < info.Length; itemp++)
+                        {
+                            points[itemp - 2] = Convert.ToSingle(info[itemp]);
+                        }
+                        for( int itemp=2;itemp<(pointnum+2);itemp+=2)
+                        {
+
+                           int SequenceNumber=(itemp-2)/2;
+                          point[SequenceNumber].X= Convert.ToSingle(info[itemp]);
+                          point[SequenceNumber].Y = Convert.ToSingle(info[itemp + 1]);
+                        }
+                    
+                        box[0] = point[0].X;//xmin
+                         box[1] = point[0].Y; //ymin
+                          box[2] = point[0].X;//xmax
+                         box[3] = point[0].Y; //ymax
+                    //选取边界盒
+                        for (int itemp = 1; itemp < pointnum; itemp++)
+                        { if (point[itemp].X < box[0])box[0] = point[itemp].X;
+                        if (point[itemp].Y < box[1]) box[1] = point[itemp].Y;
+                        if (point[itemp].X > box[0]) box[2] = point[itemp].X;
+                        if (point[itemp].Y > box[0]) box[3] = point[itemp].Y;
+                        }
+                        FrmPlay.ReceiveBox = box;
+                        FrmPlay.ReceivePoint = point;
+                        FrmPlay.ReceivePoints = points;
+                        FrmPlay.BeginGame = true;
+                        break;
                 }
             }
         }
@@ -205,6 +258,9 @@ namespace LSClient
                 for (i = 0; i < MAX_TABLE; i++)
                     for (j = 0; j < MAX_USER; j++)
                         CheckBoxGameTables[i, j].Enabled = false;
+
+             
+
             }
         }
 
@@ -228,7 +284,7 @@ namespace LSClient
         private void exitw()//退出登陆
         {
             button1.Enabled = false;
-            service.Send2Server("Logout");
+            service.Send2Server(string.Format("Logout,{0}", textBoxName.Text.Trim()));
             Thread.Sleep(100);
             
             threadReceive.Abort();
@@ -282,7 +338,14 @@ namespace LSClient
                 }
                // else if (FrmPlay.IsDisposed == false)
                 //{ }               
-            }            
+            }
+
+          //
+        private void frmplay_Exited(object sender, EventArgs e)//frmplay关闭被触发的程序  
+        {
+            MessageBox.Show("SajetManager close");
+        }  
+
         }    
     }
 

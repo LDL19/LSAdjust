@@ -107,6 +107,8 @@ namespace LSServer
             
             User user = (User)obj;
             bool exitWhile = false;
+            int tableIndex = -1;//桌号
+            int seat = -1;//座位号
             //用于控制是否退出循环，因为无法在switch中break掉循环
             while (!exitWhile )
             {
@@ -130,8 +132,6 @@ namespace LSServer
                 }
                 service.SetListBox(string.Format("来自{0}:{1}", user.userName, receiveStr));
                 string[] info = receiveStr.Split(',');
-                int tableIndex = -1;//桌号
-                int seat = -1;//座位号
                 string sendStr = "";
                 //信息初始化
                 switch (info[0])//信息交换必须遵循关键词，信息的格式,具体格式在case中说明。
@@ -157,8 +157,8 @@ namespace LSServer
                         //格式：Logout
                         //退出
                         service.SetListBox(string.Format("{0}退出游戏", user.userName));
-                        // sendStr = "你已经退出游戏";
-                        // service.Send2User(user, sendStr);
+                        sendStr = "Logout";
+                        service.Send2User(user, sendStr);
                         userList.Remove(user);
                         RemoveClientFromUser(user);
                         exitWhile = true;
@@ -186,11 +186,9 @@ namespace LSServer
                         //重新将游戏室各桌情况发送给所有用户
                         service.Send2All(userList, "TableChange," + tableIndex+','+seat+",1");
                         break;
-                    case "Start":
-                        //格式：Start,关数
+                    case "Ready":
+                        //格式：Ready,关数
                         //该用户单击了开始按钮
-                        tableIndex = int.Parse(info[1]);
-                        seat = int.Parse(info[2]);
                         tables[tableIndex].users[seat].ready = true;
                         //添加sendString..............
 
@@ -202,7 +200,7 @@ namespace LSServer
                                     sumReady++;
                         if(sumReady==Table.MAX_USER)
                         {
-                            sendStr = "Deal";
+                            sendStr = "Deal"; //格式：Deal ,总点数，每个点的x，y坐标。
                             PointF[] points = tables[tableIndex].Cal_Line();
                             int sum = points.Length;
                             sendStr += ',' + sum.ToString();
@@ -346,7 +344,7 @@ namespace LSServer
         {
             service.SetListBox(string.Format("当前连接用户数:{0}", userList.Count));
             service.SetListBox("开始停止服务，并依此使用用户退出");
-            service.Send2All(userList, "End,see you next time" );
+            service.Send2All(userList, "End,see you next time" );//服务器断开，end
             for (int i = 0; i < userList.Count; i++)
             {
                userList[i].threadReceive.Abort();

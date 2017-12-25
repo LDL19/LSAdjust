@@ -34,8 +34,8 @@ namespace LSClient
         private CheckBox[,] CheckBoxGameTables;//注意为了不引发checkchanged事件，在写代码的时候注意保护
         private FrmPlay FrmPlay;
         private Thread threadReceive;
-        private int pointnum;//点的数量
-       private PointF[] point; //点
+        private int numPoints;//点的数量
+        private PointF[] point; //点
         double[] points;//点
         double[] box;//边界盒
         private Process[] MyProcesses;  //希望实时监测frmplay
@@ -156,27 +156,28 @@ namespace LSClient
                         FrmPlay.service.SetListBox("服务器断开");
                         break;
                     case "Deal":
-                        pointnum = Convert.ToInt32(info[1]);
-
+                        numPoints = Convert.ToInt32(info[1]);
+                        points = new double[numPoints * 2];
+                        point = new PointF[numPoints];
                         //point
                         for (int itemp = 2; itemp < info.Length; itemp++)
                         {
                             points[itemp - 2] = Convert.ToSingle(info[itemp]);
                         }
-                        for( int itemp=2;itemp<(pointnum+2);itemp+=2)
+                        for( int itemp=2;itemp<(numPoints+2);itemp+=2)
                         {
 
                            int SequenceNumber=(itemp-2)/2;
                           point[SequenceNumber].X= Convert.ToSingle(info[itemp]);
                           point[SequenceNumber].Y = Convert.ToSingle(info[itemp + 1]);
                         }
-                    
+                        box = new double[4];
                         box[0] = point[0].X;//xmin
                          box[1] = point[0].Y; //ymin
                           box[2] = point[0].X;//xmax
                          box[3] = point[0].Y; //ymax
                     //选取边界盒
-                        for (int itemp = 1; itemp < pointnum; itemp++)
+                        for (int itemp = 1; itemp < numPoints; itemp++)
                         { if (point[itemp].X < box[0])box[0] = point[itemp].X;
                         if (point[itemp].Y < box[1]) box[1] = point[itemp].Y;
                         if (point[itemp].X > box[0]) box[2] = point[itemp].X;

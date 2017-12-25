@@ -286,7 +286,29 @@ namespace LSServer
                         //格式：chat，userName,说话内容
                         service.Send2Table(tables[tableIndex], sendStr);
                         break;
-
+                    case "StandUp":
+                        //格式：SitDown,桌号，座位号
+                    //从游戏中退出
+                             tableIndex = int.Parse(info[1]);
+                        seat = int.Parse(info[2]);
+                        tables[tableIndex].users[seat] = user;
+                        //table[tableIndex].players[side].people = true;
+                        service.SetListBox(string.Format("{0}从第{1}桌第{2}座离开", user.userName, tableIndex + 1, seat + 1));
+                    
+                        //发送格式：Message,消息内容
+                        for (int i = 0; i < Table.MAX_USER; i++)
+                            if (tables[tableIndex].users[i] != null && tables[tableIndex].users[i]!=user)
+                            {
+                                sendStr = string.Format("Message,"+string.Format("{0}从第{1}座离开",tables[tableIndex].users[i].userName,i+1));
+                                service.Send2User(user, sendStr);
+                            }
+                        //告诉本桌其他用户该用户离开
+                        //发送格式：StandUp, 座位号, 用户名
+                        sendStr = string.Format("Message,{0}从第{1}座离开", user.userName, seat + 1);
+                        service.Send2Table(tables[tableIndex], sendStr,seat);
+                        //重新将游戏室各桌情况发送给所有用户
+                        service.Send2All(userList, "TableChange," + tableIndex+','+seat+",0");
+                        break;
                 }
             }//endwhile
         }
@@ -302,6 +324,7 @@ namespace LSServer
                         //发送格式：Lost,座位号,用户名
                         tables[i].users[j] = null;
                         service.Send2Table(tables[i], string.Format("Lost,{0},{1}", j, user.userName),j);
+               
                         return;
                     }
         }
@@ -323,11 +346,14 @@ namespace LSServer
         {
             service.SetListBox(string.Format("当前连接用户数:{0}", userList.Count));
             service.SetListBox("开始停止服务，并依此使用用户退出");
+            service.Send2All(userList, "End,see you next time" );
             for (int i = 0; i < userList.Count; i++)
             {
+               userList[i].threadReceive.Abort();
                 userList[i].client.Close();
-                userList[i].threadReceive.Abort();
+                
             }
+            userList.RemoveRange(0, userList.Count); 
             myListener.Stop();
             btnStart.Enabled = true;
             btnStop.Enabled = false;

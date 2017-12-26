@@ -93,7 +93,7 @@ namespace LSClient
             threadReceive = new Thread(new ThreadStart(ReceiveData));//另起线程监听
             threadReceive.IsBackground = true;
             threadReceive.Start();
-            button1.Enabled = true;//既然已经登陆就可以退出
+            btnExit.Enabled = true;//既然已经登陆就可以退出
         }
         private void ReceiveData()//注意从该线程操作控件时要添加委托。
         {
@@ -167,8 +167,8 @@ namespace LSClient
                             points[aa].X = Convert.ToSingle(info[i]);
                             points[aa].Y = Convert.ToSingle(info[i + 1]);
                         }
-                        GetBoundingBox(points);
-                        frmPlay.beginGame = true;
+                        //GetBoundingBox(points);
+                        frmPlay.gameStart = true;
                         DrawPanelRefresh();
                         break;
                 }
@@ -279,64 +279,53 @@ namespace LSClient
                 //    checkBox.Enabled = false;
             }
         }
-        private void exitw()//退出登陆
-        {
-            button1.Enabled = false;
-            service.Send2Server(string.Format("Logout,{0}", textBoxName.Text.Trim()));
-            Thread.Sleep(100);
+        //private void exitw()//退出登陆
+        //{
+        //    btnExit.Enabled = false;
+        //    service.Send2Server(string.Format("Logout,{0}", textBoxName.Text.Trim()));
+        //    Thread.Sleep(100);
             
-            threadReceive.Abort();
- client.Close(); 
-            client = null;
+        //    threadReceive.Abort();
+        //    client.Close(); 
 
-            btnLogin.Enabled = true;
+        //    btnLogin.Enabled = true;
        
       
-        }
-   bool btnFinishflag = false;
-   public void getValue(bool btnFinish)//绑定委托事件
-        {
-            btnFinishflag = btnFinish;
-        }
+        //}
+        //bool btnFinishflag = false;
+        //public void getValue(bool btnFinish)//绑定委托事件
+        //    {
+        //        btnFinishflag = btnFinish;
+        //    }
         private void button1_Click(object sender, EventArgs e)
         {
             MessageBoxButtons buttons = MessageBoxButtons.YesNo;
-            if (frmPlay == null || frmPlay.IsDisposed)
                 //当frmplay关闭，是被释放，但是并不为null
                 //未被打开或者被关闭释放
-            {
-                
-                DialogResult result = MessageBox.Show("确定要退出吗？", "提示", buttons);
-                if (result == DialogResult.Yes)
-                {
-                    exitw();
-                }
-                else if (result == DialogResult.No)
-                { }
-            }
-                else if (frmPlay != null)//
-                { 
-                    frmPlay.putBoolHandler=getValue;
-                    if (btnFinishflag == false)
-                    {
-                        DialogResult result2 = MessageBox.Show("还没有提交，确定要退出吗？", "提示", buttons);
-                        if (result2 == DialogResult.No)
-                        { }
-                        else
-                        {
-                            frmPlay.Dispose();
-                            exitw();
-                        }
-                    }
-                    else
-                    { 
-                        exitw();
-                    frmPlay.Dispose();
-                    }
-                }
-               // else if (FrmPlay.IsDisposed == false)
+            DialogResult result = MessageBox.Show("确定要退出吗？", "提示", buttons);
+            if (result == DialogResult.Yes)
+                this.Close();
+            //else if (frmPlay != null)//
+            //{ 
+            //    frmPlay.putBoolHandler=getValue;
+            //    if (btnFinishflag == false)
+            //    {
+            //        DialogResult result2 = MessageBox.Show("还没有提交，确定要退出吗？", "提示", buttons);
+            //        if (result2 == DialogResult.Yes)
+            //        {
+            //            frmPlay.Dispose();
+            //            exitw();
+            //        }
+            //    }
+            //    else
+            //    { 
+            //        exitw();
+            //    frmPlay.Dispose();
+            //    }
+            //}
+                // else if (FrmPlay.IsDisposed == false)
                 //{ }               
-            }
+        }
 
           //
         private void frmplay_Exited(object sender, EventArgs e)//frmplay关闭被触发的程序  
@@ -344,6 +333,6 @@ namespace LSClient
             MessageBox.Show("SajetManager close");
         }  
 
-        }    
-    }
+    }    
+}
 

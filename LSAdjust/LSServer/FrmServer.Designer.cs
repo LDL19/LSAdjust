@@ -57,7 +57,7 @@
             this.textBoxMaxUsers.Name = "textBoxMaxUsers";
             this.textBoxMaxUsers.Size = new System.Drawing.Size(60, 25);
             this.textBoxMaxUsers.TabIndex = 8;
-            this.textBoxMaxUsers.Text = "3";
+            this.textBoxMaxUsers.Text = "1";
             // 
             // textBoxMaxTables
             // 

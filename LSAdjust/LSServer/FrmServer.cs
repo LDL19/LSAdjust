@@ -22,10 +22,6 @@ namespace LSServer
         private Table[] tables;//桌子表
         System.Collections.Generic.List<User> userList = new List<User>();//创建user链表,因为还有一些users没入座。
 
-        //int ch = 1; Point[] point = null; Point cpoint; double a = 0; double b = 0; double c = 0; double p = 0;Point [] point3;Point[] point4;      //模型参数定义为全局变量
-        //int ch1 = 1; Point[] point1 = null; Point[] point2 = null; Point cpoint1; double a1 = 0; double b1 = 0; double c1 = 0; double p1 = 0;
-        //int n = 1;                    //所处关数，以此来确定发送散点类型
-
 
         public FrmServer()
         {
@@ -232,8 +228,7 @@ namespace LSServer
 
                         break;
                     case "Finish":
-                        tableIndex = int.Parse(info[1]);
-                        seat = int.Parse(info[2]);
+                        //格式:Finish,直线的端点坐标
 
                         ////int ch1=1; Point[] point1=null;Point [] point2=null; Point cpoint1; double a1=0; double b1=0; double c1=0; double p1=0;
 
@@ -277,18 +272,15 @@ namespace LSServer
                         //n = n + 1;        //通关，进入下一关
                         break;
                     case "Chat":
-                        //格式：chat,桌号，对话内容
-                        tableIndex = int.Parse(info[1]);
+                        //格式：Chat,对话内容
                         //说的话可能包含逗号
-                        sendStr = string.Format("Chat,{0},{1}", user.userName, info[2]);
+                        sendStr = string.Format("Chat,{0},{1}", user.userName, info[1]);
                         //格式：chat，userName,说话内容
                         service.Send2Table(tables[tableIndex], sendStr);
                         break;
                     case "StandUp":
-                        //格式：SitDown,桌号，座位号
-                    //从游戏中退出
-                             tableIndex = int.Parse(info[1]);
-                        seat = int.Parse(info[2]);
+                        //格式：StandUp
+                        //从游戏中退出
                         tables[tableIndex].users[seat] = user;
                         //table[tableIndex].players[side].people = true;
                         service.SetListBox(string.Format("{0}从第{1}桌第{2}座离开", user.userName, tableIndex + 1, seat + 1));

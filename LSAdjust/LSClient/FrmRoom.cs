@@ -32,19 +32,10 @@ namespace LSClient
         //private bool receiveCmd = false;//接受命令而改变checkbox的状态，是true，否则是false
         //private bool normalExit = false;//是否正常退出线程
         private CheckBox[,] CheckBoxGameTables;//注意为了不引发checkchanged事件，在写代码的时候注意保护
-        private FrmPlay FrmPlay;
+        private FrmPlay frmPlay;
         private Thread threadReceive;
         private int numPoints;//点的数量
         public PointF[] points; //点
-
-        public struct Box
-        {
-            public float Xmin;
-            public float Ymin;
-            public float Xmax;
-            public float Ymax;
-        }
-        public Box box;
 
         private Process[] MyProcesses;  //希望实时监测frmplay
   
@@ -52,6 +43,8 @@ namespace LSClient
         public FrmRoom()
         {
             InitializeComponent();
+
+
         }
 
         public void scout(object obj)
@@ -149,7 +142,7 @@ namespace LSClient
                         break;
                     case "Message":
                         //系统消息
-                        FrmPlay.service.SetListBox("系统消息:" + info[1]);
+                        frmPlay.service.SetListBox("系统消息:" + info[1]);
                         break;
                     case "Logout":
                         {
@@ -158,10 +151,10 @@ namespace LSClient
                         }
                         break;
                     case "Chat"://收到chat
-                        FrmPlay.service.SetListBox(info[1] + "说:" + info[2]);
+                        frmPlay.service.SetListBox(info[1] + "说:" + info[2]);
                         break;
                     case "End":
-                        FrmPlay.service.SetListBox("服务器断开");
+                        frmPlay.service.SetListBox("服务器断开");
                         break;
                     case "Deal":
                         numPoints = Convert.ToInt32(info[1]);
@@ -170,47 +163,41 @@ namespace LSClient
                         int aa;
                         for (int i = 2; i < info.Length; i+=2)
                         {
-                            aa = i / 2;
+                            aa = i / 2-1;
                             points[aa].X = Convert.ToSingle(info[i]);
                             points[aa].Y = Convert.ToSingle(info[i + 1]);
                         }
                         GetBoundingBox(points);
-                        FrmPlay.BeginGame = true;
-                        FrmRoom.
+                        frmPlay.beginGame = true;
+                        DrawPanelRefresh();
                         break;
                 }
             }
         }
-
-        public void GetBoundingBox(PointF[] points)
+        delegate void DrawPanelDelegate();
+        private void DrawPanelRefresh()
         {
-            object thislock = new object();
-            lock (thislock) //这是通过监听线程访问的，防止别的线程访问box，先将它锁住。
+            if (frmPlay.InvokeRequired)
             {
-                box.Xmin = points[0].X;
-                box.Xmax = points[0].X;
-                box.Ymin = points[0].Y;
-                box.Ymax = points[0].Y;
-                //选取边界盒
-                for (int i = 1; i < numPoints; i++)
-                {
-                    if (points[i].X < box.Xmin) box.Xmin = points[i].X;
-                    if (points[i].Y < box.Ymin) box.Ymin = points[i].Y;
-                    if (points[i].X > box.Xmax) box.Xmax = points[i].X;
-                    if (points[i].Y > box.Ymax) box.Ymax = points[i].Y;
-                }
+                DrawPanelDelegate d = new DrawPanelDelegate(DrawPanelRefresh);
+                frmPlay.Invoke(d);
             }
+            else
+                frmPlay.DrawPanel.Refresh();
         }
+
+
+
         delegate void ExitFrmPlayDelegate();
         private void ExitFrmPlay()
         {
-            if (FrmPlay.InvokeRequired)
+            if (frmPlay.InvokeRequired)
             {
                 ExitFrmPlayDelegate d = new ExitFrmPlayDelegate(ExitFrmPlay);
                 this.Invoke(d);
             }
             else
-                FrmPlay.Close();
+                frmPlay.Close();
         }
         delegate void PanelCallback(string s, int i);
         private void AddCheckBoxToPanel(string s, int i)//添加一行
@@ -264,8 +251,8 @@ namespace LSClient
                 int j = int.Parse(checkbox.Name.Substring(9, 4));
                 seat = j;
                 service.Send2Server(string.Format("SitDown,{0},{1}", i, j));
-                FrmPlay = new FrmPlay(i, j, sw);
-                FrmPlay.Show();
+                frmPlay = new FrmPlay(i, j, sw);
+                frmPlay.Show(this);
                 for (i = 0; i < MAX_TABLE; i++)
                     for (j = 0; j < MAX_USER; j++)
                         CheckBoxGameTables[i, j].Enabled = false;
@@ -314,7 +301,7 @@ namespace LSClient
         private void button1_Click(object sender, EventArgs e)
         {
             MessageBoxButtons buttons = MessageBoxButtons.YesNo;
-            if (FrmPlay == null || FrmPlay.IsDisposed)
+            if (frmPlay == null || frmPlay.IsDisposed)
                 //当frmplay关闭，是被释放，但是并不为null
                 //未被打开或者被关闭释放
             {
@@ -327,9 +314,9 @@ namespace LSClient
                 else if (result == DialogResult.No)
                 { }
             }
-                else if (FrmPlay != null)//
+                else if (frmPlay != null)//
                 { 
-                    FrmPlay.putBoolHandler=getValue;
+                    frmPlay.putBoolHandler=getValue;
                     if (btnFinishflag == false)
                     {
                         DialogResult result2 = MessageBox.Show("还没有提交，确定要退出吗？", "提示", buttons);
@@ -337,14 +324,14 @@ namespace LSClient
                         { }
                         else
                         {
-                            FrmPlay.Dispose();
+                            frmPlay.Dispose();
                             exitw();
                         }
                     }
                     else
                     { 
                         exitw();
-                    FrmPlay.Dispose();
+                    frmPlay.Dispose();
                     }
                 }
                // else if (FrmPlay.IsDisposed == false)

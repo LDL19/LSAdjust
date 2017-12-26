@@ -48,10 +48,8 @@
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.Ycoor = new System.Windows.Forms.Label();
-            this.Xcoor = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
+            this.labelY = new System.Windows.Forms.Label();
+            this.labelX = new System.Windows.Forms.Label();
             this.Para_b = new System.Windows.Forms.TextBox();
             this.Para_a = new System.Windows.Forms.TextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -91,7 +89,6 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(338, 39);
             this.textBox1.TabIndex = 7;
-            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // buttonSend
             // 
@@ -115,7 +112,6 @@
             this.DrawPanel.TabStop = false;
             this.DrawPanel.Click += new System.EventHandler(this.DrawPanel_Click);
             this.DrawPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.DrawPanel_Paint);
-            this.DrawPanel.DoubleClick += new System.EventHandler(this.DrawPanel_DoubleClick);
             this.DrawPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DrawPanel_MouseDown);
             this.DrawPanel.MouseEnter += new System.EventHandler(this.DrawPanel_MouseEnter);
             this.DrawPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DrawPanel_MouseMove);
@@ -134,10 +130,10 @@
             // 
             // btnExit
             // 
-            this.btnExit.Location = new System.Drawing.Point(230, 380);
+            this.btnExit.Location = new System.Drawing.Point(230, 381);
             this.btnExit.Margin = new System.Windows.Forms.Padding(4);
             this.btnExit.Name = "btnExit";
-            this.btnExit.Size = new System.Drawing.Size(100, 49);
+            this.btnExit.Size = new System.Drawing.Size(104, 49);
             this.btnExit.TabIndex = 11;
             this.btnExit.Text = "离开";
             this.btnExit.UseVisualStyleBackColor = true;
@@ -161,7 +157,6 @@
             this.textBox2.TabIndex = 13;
             this.textBox2.Text = "1";
             this.textBox2.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
             // 
             // label2
             // 
@@ -171,7 +166,6 @@
             this.label2.Size = new System.Drawing.Size(45, 15);
             this.label2.TabIndex = 14;
             this.label2.Text = " 积分";
-            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // label3
             // 
@@ -191,7 +185,6 @@
             this.textBox3.TabIndex = 16;
             this.textBox3.Text = "0";
             this.textBox3.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox3.TextChanged += new System.EventHandler(this.textBox3_TextChanged);
             // 
             // textBox4
             // 
@@ -202,11 +195,10 @@
             this.textBox4.TabIndex = 17;
             this.textBox4.Text = "1/5";
             this.textBox4.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.textBox4.TextChanged += new System.EventHandler(this.textBox4_TextChanged);
             // 
             // btnDraw
             // 
-            this.btnDraw.Location = new System.Drawing.Point(230, 249);
+            this.btnDraw.Location = new System.Drawing.Point(230, 250);
             this.btnDraw.Name = "btnDraw";
             this.btnDraw.Size = new System.Drawing.Size(104, 49);
             this.btnDraw.TabIndex = 18;
@@ -234,7 +226,6 @@
             this.chkTimeLimit.TabIndex = 21;
             this.chkTimeLimit.Text = "限时：";
             this.chkTimeLimit.UseVisualStyleBackColor = true;
-            this.chkTimeLimit.CheckedChanged += new System.EventHandler(this.chkTimeLimit_CheckedChanged);
             // 
             // txtTimeLimit
             // 
@@ -252,7 +243,6 @@
             this.lblTimeLimit.Size = new System.Drawing.Size(37, 15);
             this.lblTimeLimit.TabIndex = 23;
             this.lblTimeLimit.Text = "分钟";
-            this.lblTimeLimit.Click += new System.EventHandler(this.lblTimeLimit_Click);
             // 
             // tabControl1
             // 
@@ -281,10 +271,8 @@
             // groupBox1
             // 
             this.groupBox1.BackColor = System.Drawing.Color.LightCyan;
-            this.groupBox1.Controls.Add(this.Ycoor);
-            this.groupBox1.Controls.Add(this.Xcoor);
-            this.groupBox1.Controls.Add(this.label11);
-            this.groupBox1.Controls.Add(this.label4);
+            this.groupBox1.Controls.Add(this.labelY);
+            this.groupBox1.Controls.Add(this.labelX);
             this.groupBox1.Controls.Add(this.Para_b);
             this.groupBox1.Controls.Add(this.Para_a);
             this.groupBox1.Controls.Add(this.groupBox2);
@@ -316,46 +304,26 @@
             this.groupBox1.TabIndex = 26;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "game";
-            this.groupBox1.Enter += new System.EventHandler(this.groupBox1_Enter);
             // 
-            // Ycoor
+            // labelY
             // 
-            this.Ycoor.AutoSize = true;
-            this.Ycoor.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.Ycoor.Location = new System.Drawing.Point(79, 446);
-            this.Ycoor.Name = "Ycoor";
-            this.Ycoor.Size = new System.Drawing.Size(19, 20);
-            this.Ycoor.TabIndex = 37;
-            this.Ycoor.Text = " ";
+            this.labelY.AutoSize = true;
+            this.labelY.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.labelY.Location = new System.Drawing.Point(29, 442);
+            this.labelY.Name = "labelY";
+            this.labelY.Size = new System.Drawing.Size(29, 20);
+            this.labelY.TabIndex = 35;
+            this.labelY.Text = "Y:";
             // 
-            // Xcoor
+            // labelX
             // 
-            this.Xcoor.AutoSize = true;
-            this.Xcoor.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.Xcoor.Location = new System.Drawing.Point(62, 410);
-            this.Xcoor.Name = "Xcoor";
-            this.Xcoor.Size = new System.Drawing.Size(0, 20);
-            this.Xcoor.TabIndex = 36;
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label11.Location = new System.Drawing.Point(29, 442);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(29, 20);
-            this.label11.TabIndex = 35;
-            this.label11.Text = "Y:";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label4.Location = new System.Drawing.Point(29, 410);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(29, 20);
-            this.label4.TabIndex = 34;
-            this.label4.Text = "X:";
+            this.labelX.AutoSize = true;
+            this.labelX.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.labelX.Location = new System.Drawing.Point(29, 410);
+            this.labelX.Name = "labelX";
+            this.labelX.Size = new System.Drawing.Size(29, 20);
+            this.labelX.TabIndex = 34;
+            this.labelX.Text = "X:";
             // 
             // Para_b
             // 
@@ -393,7 +361,6 @@
             this.label6.Size = new System.Drawing.Size(69, 20);
             this.label6.TabIndex = 30;
             this.label6.Text = "抛物线";
-            this.label6.Click += new System.EventHandler(this.label6_Click);
             // 
             // label7
             // 
@@ -427,7 +394,6 @@
             this.label8.Size = new System.Drawing.Size(89, 20);
             this.label8.TabIndex = 28;
             this.label8.Text = "Y=aX^2+b";
-            this.label8.Click += new System.EventHandler(this.label8_Click);
             // 
             // DrawXcurve
             // 
@@ -478,7 +444,6 @@
             this.WinRectangle.Size = new System.Drawing.Size(100, 50);
             this.WinRectangle.TabIndex = 25;
             this.WinRectangle.TabStop = false;
-            this.WinRectangle.Click += new System.EventHandler(this.WinRectangle_Click);
             // 
             // tabPage2
             // 
@@ -516,7 +481,7 @@
         private System.Windows.Forms.ListBox listBox1;
         public System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Button buttonSend;
-        private System.Windows.Forms.PictureBox DrawPanel;
+        public System.Windows.Forms.PictureBox DrawPanel;
         private System.Windows.Forms.Button btnReady;
         private System.Windows.Forms.Button btnExit;
         private System.Windows.Forms.Label label1;
@@ -546,9 +511,7 @@
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox Para_b;
         private System.Windows.Forms.TextBox Para_a;
-        private System.Windows.Forms.Label Ycoor;
-        private System.Windows.Forms.Label Xcoor;
-        private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label labelY;
+        private System.Windows.Forms.Label labelX;
     }
 }

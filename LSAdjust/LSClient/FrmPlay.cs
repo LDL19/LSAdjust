@@ -17,26 +17,30 @@ namespace LSClient
         private int tableIndex;
         private int seat;
         public Service service;
-        //public PointF[] ReceivePoint; //点
-        //public double[] ReceiveBox;
-        public bool BeginGame=false;//在接收deal之后变成true
+
+        public PointF[] points; //点
+        public Box box;
+        public Box boxCopy;
+
+        public bool beginGame=false;//在接收deal之后变成true
       //边界盒
         bool btnFinishflag = false;
         //关于图形的平移（滚轮的down up） 缩放（滚轮） 开窗放大（鼠标右键 down up） 
         //doubleclick：恢复原图像模样
-        double xMin, xMax, yMin, yMax, Wx, Wy; // 用于记录图层数据的范围
-        double xMinCopy, xMaxCopy, yMinCopy, yMaxCopy;//用于保存原始数据，便于恢复原来模样
-        int w, h;
-        double scale;//滚轮每次滚动的比例
+        //double box.Xmin, box.Xmax, box.Ymin, box.Ymax, Wx, Wy; // 用于记录图层数据的范围
+        //double box.XminCopy, xMaxCopy, yMinCopy, yMaxCopy;//用于保存原始数据，便于恢复原来模样
+        //float scale;//滚轮每次滚动的比例
         float sx, sy;
         Boolean IsMove = false;
         Boolean IsWindow = false;
-        double dx, dy;                          // 为居中显示，计算偏移量               
-        double detaX, detaY;                  //用于记录平移的总偏移量
-        double Xup, Yup, Xdown, Ydown;        //用于记录鼠标down和up时的用户坐标
-        double WindowX, WindowY;              //开窗时的临时变量
-        double LeftX, LeftY, RightX, RightY;  //开窗时窗体的左上和右下
+        float dx, dy;                          // 为居中显示，计算偏移量               
+        float detaX, detaY;                  //用于记录平移的总偏移量
+        float Xup, Yup, Xdown, Ydown;        //用于记录鼠标down和up时的用户坐标
+        float WindowX, WindowY;              //开窗时的临时变量
+        float LeftX, LeftY, RightX, RightY;  //开窗时窗体的左上和右下
 
+
+        FrmRoom frmRoom;
 
 
         Bitmap bitScreen;
@@ -47,10 +51,10 @@ namespace LSClient
         //图形缩放平移开窗内容变量结束
 
 
-        double[] TestPoints; //= new double[20];//测试点
+        //double[] points; //= new double[20];//测试点
         //绘制直线的一些变量
-        PointF SendPoint1 = new PointF();
-        PointF SendPoint2 = new PointF();
+        PointF p1 = new PointF();
+        PointF p2 = new PointF();
         Boolean DrawLineButton = false;
         Boolean ShowDrawLine = false;
         int DrawLineCount = 0;
@@ -59,7 +63,7 @@ namespace LSClient
         //绘制抛物线的一些变量
         Boolean DrawCurve;
         Boolean ShowCurve;
-        double ParaA, ParaB;
+        float ParaA, ParaB;
         //注意，此时要判断接受的抛物线待拟合点坐标的种类，类型不同，画的方法也不同，此时先用参数1和2 来代替
         Boolean XorY;
 
@@ -80,7 +84,7 @@ namespace LSClient
         }
         private void btnExit_Click(object sender, EventArgs e)
         {
-            BeginGame = false;
+            beginGame = false;
             MessageBoxButtons buttons = MessageBoxButtons.YesNo;
             DialogResult result = MessageBox.Show("确定要离开吗？", "离开", buttons);
             if(result==DialogResult.Yes )
@@ -96,26 +100,15 @@ namespace LSClient
                 }
                 else
                 { 
-                     
-                DialogResult result2 =  MessageBox.Show("还没提交，确定离开吗？","提示",buttons);
-                if (result2 == DialogResult.Yes)
-                {
-                    //与重画一样的操作,待补充
-                    this.Dispose();
+                    DialogResult result2 =  MessageBox.Show("还没提交，确定离开吗？","提示",buttons);
+                    if (result2 == DialogResult.Yes)
+                    {
+                        //与重画一样的操作,待补充
+                        this.Dispose();
 
+                    }
                 }
-                else
-                { }
-                }
-                }
-            else
-            {}
             }
-       
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void buttonSend_Click(object sender, EventArgs e)//发送chat
@@ -126,10 +119,10 @@ namespace LSClient
       
         private void btnFinish_Click(object sender, EventArgs e)
         {
-            BeginGame = false;
+            beginGame = false;
             btnFinishflag = false;
             //发送结果到服务器
-            SendPoint = SendPoint1.X + "," + SendPoint1.Y + "," + SendPoint2.X + "," + SendPoint2.Y;
+            SendPoint = p1.X + "," + p1.Y + "," + p2.X + "," + p2.Y;
             service.Send2Server(string.Format("Finish,{0},{1},{2}", tableIndex, seat, SendPoint));
             btnFinishflag = true;
         }
@@ -181,12 +174,7 @@ namespace LSClient
    
         private void FrmPlay_Load(object sender, EventArgs e)
         {
-
-
-            w = DrawPanel.Width;
-            h = DrawPanel.Height;
-            detaY = 0;
-            detaX = 0;
+            frmRoom = (FrmRoom)this.Owner;
 
             this.DrawPanel.MouseWheel += new MouseEventHandler(DrawPanel_MouseWheel);//赋予c#mousewheel事件
             //测试点
@@ -195,18 +183,17 @@ namespace LSClient
             //    TestPoints[i * 2] = i * 20 + 10;
             //    TestPoints[i * 2 + 1] = i * 20 + 10;
             //}
-             xMin = 0; yMin = 0; xMax = 180; yMax = 180; //测试数据
-           TestPoints = null;
-           BeginGame = false;
-             //TestPoints = new double[ReceivePoints.Length];
+             //box.Xmin = 0; box.Ymin = 0; box.Xmax = 180; box.Ymax = 180; //测试数据
+            box.Xmin = 0;
+            box.Xmax = 180;
+            box.Ymin = 0;
+            box.Ymax = 180;
+            //TestPoints = new double[ReceivePoints.Length];
             // TestPoints = (double[])ReceivePoints.Clone();//点
-             
-        
-           // xMin = ReceiveBox[0]; yMin = ReceiveBox[1]; xMax = ReceiveBox[2]; yMax = ReceiveBox[3];//边界盒
-            xMinCopy = xMin;
-            xMaxCopy = xMax;
-            yMinCopy = yMin;
-            yMaxCopy = yMax;
+
+
+            // box.Xmin = ReceiveBox[0]; box.Ymin = ReceiveBox[1]; box.Xmax = ReceiveBox[2]; yMax = ReceiveBox[3];//边界盒
+            boxCopy = box;
 
             //由于winrectangle是用来画矩形，没有开始画所以要进行设置
             WinRectangle.Parent = DrawPanel;
@@ -225,47 +212,43 @@ namespace LSClient
         {
             this.DrawPanel.Focus();
         }
-        private void DrawPanel_DoubleClick(object sender, EventArgs e)
-        {
-            xMax = xMaxCopy;
-            xMin = xMinCopy;
-            yMin = yMinCopy;
-            yMax = yMaxCopy;
-            DrawPanel.Refresh();
-        }
+        //private void DrawPanel_DoubleClick(object sender, EventArgs e)
+        //{
+        //    box = boxCopy;
+        //    DrawPanel.Refresh();
+        //}
         private void DrawPanel_MouseWheel(object sender, MouseEventArgs e)
         {
+            float scale;
             if (e.Delta > 0)//向上滚动滑轮
             {
-                scale = 0.2;
+                scale = 0.2f;
             }
             else//向下滚动滑轮
             {
-                scale = -0.2;
+                scale = -0.2f;
             }
 
-            double xMin2, xMax2, yMin2, yMax2;
+            //double box.Xmin2, xMax2, yMin2, yMax2;
+            Box box2;
 
             //将鼠标位置运算到对应图层的坐标位置
-            double xm, ym;
-            xm = e.X / sx + xMin - Wx * 0.01 + dx;
-            ym = -e.Y / sy + yMax + Wy * 0.01 - dy;
+            float xm, ym;
+            float Wx = box.Xmax - box.Xmin;
+            float Wy = box.Ymax - box.Ymin;
+            xm = e.X / sx + box.Xmin - Wx * 0.01f + dx;
+            ym = -e.Y / sy + box.Ymax + Wy * 0.01f - dy;
             //调整相应的范围，使之以鼠标为中心进行放大缩小
-            xMin2 = xMin + (xm - xMin) * scale;
-            xMax2 = xMax - (xMax - xm) * scale;
-            yMin2 = yMin + (ym - yMin) * scale;
-            yMax2 = yMax - (yMax - ym) * scale;
+            box2.Xmin = box.Xmin + (xm - box.Xmin) * scale;
+            box2.Xmax =box.Xmax - (box.Xmax - xm) * scale;
+            box2.Ymin = box.Ymin + (ym - box.Ymin) * scale;
+            box2.Ymax = box.Ymax - (box.Ymax - ym) * scale;
             //防止超限，避免bug
-            if (xMax2 - xMin2 > 0.01 && yMax2 - yMin2 > 0.01)
-            {
-                xMin = xMin2;
-                xMax = xMax2;
-                yMax = yMax2;
-                yMin = yMin2;
-            }
+            //if (box2.Xmax-box2.Xmin > 0.01 && box2.Ymax - box2.Ymin > 0.01)
+            //{
+            box=box2;
+            //}
 
-            Wx = xMax - xMin;
-            Wy = yMax - yMin;
             DrawPanel.Refresh();
         }
         private void DrawPanel_MouseDown(object sender, MouseEventArgs e)
@@ -273,8 +256,8 @@ namespace LSClient
             if (e.Button == MouseButtons.Middle)
             {
                 //记录鼠标按下时，其用户坐标位置
-                Xdown = e.X / sx + xMin - Wx * 0.01 + dx;
-                Ydown = -e.Y / sy + yMax + Wy * 0.01 - dy;
+                Xdown = e.X / sx + box.Xmin -Wx * 0.01f + dx;
+                Ydown = -e.Y / sy + box.Ymax +Wy * 0.01f - dy;
                 //鼠标按下时，记录其窗体坐标位置
                 startPoint.X = e.X;
                 startPoint.Y = e.Y;
@@ -315,8 +298,8 @@ namespace LSClient
                 if (DrawLineCount == 0)
                 {
                     //获取第一个点的用户坐标
-                    SendPoint1.X = Convert.ToSingle(e.X / sx + xMin - Wx * 0.01 + dx);
-                    SendPoint1.Y = Convert.ToSingle(-e.Y / sy + yMax + Wy * 0.01 - dy);
+                    p1.X = e.X / sx + box.Xmin - Wx * 0.01f + dx;
+                    p1.Y = -e.Y / sy + box.Ymax + Wy * 0.01f - dy;
                     DrawLineCount += 1;
                     JudgeCount = 0;
                     DrawPanel.Refresh();
@@ -324,28 +307,22 @@ namespace LSClient
                 else if (DrawLineCount == 1)
                 {
                     //获取第二个点的用户坐标
-                    SendPoint2.X = Convert.ToSingle(e.X / sx + xMin - Wx * 0.01 + dx);
-                    SendPoint2.Y = Convert.ToSingle(-e.Y / sy + yMax + Wy * 0.01 - dy);
+                    p2.X = e.X / sx + box.Xmin - Wx * 0.01f + dx;
+                    p2.Y = -e.Y / sy + box.Ymax + Wy * 0.01f - dy;
                     DrawLineButton = false;
-                    //画完之后，重新缩放图形
-                    xMax = xMaxCopy;
-                    xMin = xMinCopy;
-                    yMin = yMinCopy;
-                    yMax = yMaxCopy;
+                   
 
                     JudgeCount = 1;
                     DrawPanel.Refresh();
                     DrawLineCount = 0;
 
                 }
-                else { }
             }
-            else { }
         }
         private void DrawPanel_MouseMove(object sender, MouseEventArgs e)
         {
-            Xcoor.Text = String.Format("{0:######.## }", e.X / sx + xMin - Wx * 0.01 + dx);
-            Ycoor.Text = String.Format("{0:######.## }", -e.Y / sy + yMax + Wy * 0.01 - dy);
+            labelX.Text = "X:"+String.Format("{0:######.## }", e.X / sx + box.Xmin - Wx * 0.01 + dx);
+            labelY.Text = "Y:"+String.Format("{0:######.## }", -e.Y / sy + box.Ymax + Wy * 0.01 - dy);
 
             if (IsMove == true)
             {
@@ -385,24 +362,24 @@ namespace LSClient
                 }
 
                 //mouseup时鼠标的用户坐标
-                Xup = e.X / sx + xMin - Wx * 0.01 + dx;
-                Yup = -e.Y / sy + yMax + Wy * 0.01 - dy;
+                Xup = e.X / sx + box.Xmin - Wx * 0.01f + dx;
+                Yup = -e.Y / sy + box.Ymax + Wy * 0.01f - dy;
                 //计算平移的累计，之后的开窗要用到
                 detaX = detaX + Xup - Xdown;
                 detaY = detaY + Yup - Ydown;
 
                 PointF[] pt = new PointF[2];
-                double EndX, EndY;
-                EndX = e.X / sx + xMin - Wx * 0.01 + dx;//转化为用户坐标
-                EndY = -e.Y / sy + yMax + Wy * 0.01 - dy;
-                pt[0].X = Convert.ToSingle(Xdown);//其实这个直接用 窗体坐标也可以，因为需要的只是一个delta（差值）
-                pt[0].Y = Convert.ToSingle(Ydown);
-                pt[1].X = Convert.ToSingle(EndX);
-                pt[1].Y = Convert.ToSingle(EndY);
-                xMax = xMax - (pt[1].X - pt[0].X);
-                xMin = xMin - (pt[1].X - pt[0].X);
-                yMax = yMax - (pt[1].Y - pt[0].Y);
-                yMin = yMin - (pt[1].Y - pt[0].Y);
+                float EndX, EndY;
+                EndX = e.X / sx + box.Xmin - Wx * 0.01f + dx;//转化为用户坐标
+                EndY = -e.Y / sy + box.Ymax + Wy * 0.01f - dy;
+                pt[0].X = Xdown;//其实这个直接用 窗体坐标也可以，因为需要的只是一个delta（差值）
+                pt[0].Y = Ydown;
+                pt[1].X = EndX;
+                pt[1].Y = EndY;
+                box.Xmax = box.Xmax - (pt[1].X - pt[0].X);
+                box.Xmin = box.Xmin - (pt[1].X - pt[0].X);
+                box.Ymax = box.Ymax - (pt[1].Y - pt[0].Y);
+                box.Ymin = box.Ymin - (pt[1].Y - pt[0].Y);
                 DrawPanel.Refresh();
             }
             else if (e.Button == MouseButtons.Right && IsWindow == true)
@@ -413,23 +390,23 @@ namespace LSClient
                 RightY = LeftY + Math.Abs(e.Y - WindowY);
 
                 WinRectangle.Visible = false;
-                double xMin4, xMax4, yMin4, yMax4;//记录初始范围，便于恢复全图,最重要的地方
-                xMin4 = (LeftX - DrawPanel.Location.X) / sx + xMin - Wx * 0.01 + dx - detaX;
-                yMax4 = -(LeftY - DrawPanel.Location.Y) / sy + yMax + Wy * 0.01 - dy - detaY;
-                xMax4 = (RightX - DrawPanel.Location.X) / sx + xMin - Wx * 0.01 + dx - detaX;
-                yMin4 = -(RightY - DrawPanel.Location.Y) / sy + yMax + Wy * 0.01 - dy - detaY;
+                float Xmin4, xMax4, yMin4, yMax4;//记录初始范围，便于恢复全图,最重要的地方
+                Xmin4 = (LeftX - DrawPanel.Location.X) / sx + box.Xmin - Wx * 0.01f + dx - detaX;
+                yMax4 = -(LeftY - DrawPanel.Location.Y) / sy + box.Ymax + Wy * 0.01f - dy - detaY;
+                xMax4 = (RightX - DrawPanel.Location.X) / sx + box.Xmin - Wx * 0.01f + dx - detaX;
+                yMin4 = -(RightY - DrawPanel.Location.Y) / sy + box.Ymax + Wy * 0.01f - dy - detaY;
 
-                if (xMax4 - xMin4 > 0.01 || yMax4 - yMin4 > 0.01)
+                if (xMax4 - Xmin4 > 0.01 || yMax4 - yMin4 > 0.01)
                 {
-                    xMin = xMin4;
-                    yMin = yMin4;
-                    xMax = xMax4;
-                    yMax = yMax4;
+                    box.Xmin = Xmin4;
+                    box.Ymin = yMin4;
+                    box.Xmax = xMax4;
+                    box.Ymax = yMax4;
                 }
-                xMin = xMin4 + detaX;
-                yMin = yMin4 + detaY;
-                xMax = xMax4 + detaX;
-                yMax = yMax4 + detaY;
+                box.Xmin = Xmin4 + detaX;
+                box.Ymin = yMin4 + detaY;
+                box.Xmax = xMax4 + detaX;
+                box.Ymax = yMax4 + detaY;
 
                 DrawPanel.Refresh();
             }
@@ -445,69 +422,67 @@ namespace LSClient
             g = e.Graphics;
             g.Clear(Color.White);
 
-            Wx = xMax - xMin;
-            Wy = yMax - yMin;
-
-            try
-            {
+            //try
+            //{
                 // 计算合适的缩放比例。为了确保图形在视图中完全表达，数据范围放大2%
-                sx = Convert.ToSingle(w / (Wx * 1.02)); // Wx是数据范围的宽度
-                sy = Convert.ToSingle(h / (Wy * 1.02)); // Wy是数据范围的高度
+                sx = DrawPanel.Width / (Wx * 1.02f); // Wx是数据范围的宽度
+                sy = DrawPanel.Height / (Wy * 1.02f); // Wy是数据范围的高度
                 // 选择一个较小的比例
-                dx = dy = 0.0;
+                dx = dy = 0.0f;
                 if (sx > sy)
                 {
                     sx = sy;
-                    dx = (Wx - w / sx) / 2.0; // 调整横向比例，横向居中
+                    dx = (Wx - DrawPanel.Width / sx) / 2.0f; // 调整横向比例，横向居中
                 }
                 else
                 {
                     sy = sx;
-                    dy = (Wy - h / sy) / 2.0; // 调整纵向比例，纵向居中
+                    dy = (Wy - DrawPanel.Height / sy) / 2.0f; // 调整纵向比例，纵向居中
                 }
 
                 // 设立坐标变换矩阵的坐标缩放比例
                 g.ScaleTransform(sx, -sy); // 设定缩放比例。由于画板坐标的原点在左上角，向下为正，将y比例设为负数
 
                 // 设置原点平移量
-                g.TranslateTransform(Convert.ToSingle(-xMin + Wx * 0.01 - dx), Convert.ToSingle(-yMax - Wy * 0.01 + dy));
+                g.TranslateTransform(-box.Xmin + Wx * 0.01f - dx, -box.Ymax - Wy * 0.01f+ dy);
 
                 // 设立一个彩色的画笔
                 Single penWidth = 1.0F / (sx + sy) * 2;   // 计算画笔宽度，为缩放比例的倒数。
 
-                Pen myPen = new Pen(Color.FromArgb(220, 220, 220), penWidth);
+                Pen myPen = new Pen(Color.FromArgb(220, 220, 220), penWidth);//灰笔
                 DrawChess(g, myPen);
 
-                myPen = new Pen(Color.Blue, penWidth);
-                Pen myPen1 = new Pen(Color.FromArgb(0, 200, 0), penWidth);
-                Pen myPen2 = new Pen(Color.Red, penWidth);
+                myPen = new Pen(Color.Blue, penWidth);//蓝笔
+                Pen penGreen = new Pen(Color.FromArgb(0, 200, 0), penWidth);
+                Pen penRed = new Pen(Color.Red, penWidth);
 
                 //测试数据
-                if (BeginGame == false)
-                { }
-                else
+                if (beginGame)
                 {
-                    for (int i = 0; i < (TestPoints.GetUpperBound(0) + 1) * 0.5; i++)
+                    this.points = frmRoom.points;//将它的points指向frmroom的points
+                    for (int i = 0; i < points.GetUpperBound(0)+1; i++)
                     {
-                        g.DrawLine(myPen, Convert.ToSingle(TestPoints[i * 2] - 0.5), Convert.ToSingle(TestPoints[i * 2 + 1]), Convert.ToSingle(TestPoints[i * 2] + 0.5), Convert.ToSingle(TestPoints[i * 2 + 1]));
-                        g.DrawLine(myPen, Convert.ToSingle(TestPoints[i * 2]), Convert.ToSingle(TestPoints[i * 2 + 1] - 0.5), Convert.ToSingle(TestPoints[i * 2]), Convert.ToSingle(TestPoints[i * 2 + 1] + 0.5));
+                        g.DrawLine(penRed, points[i].X - 0.5f, points[i].Y, points[i].X + 0.5f, points[i].Y);
+                        g.DrawLine(penRed, points[i].X, points[i].Y - 0.5f, points[i].X, points[i].Y + 0.5f);
                     }
+                    GetBoundingBox(points);
+                    //在这里缩放
                 }
                 //画直线拟合部分的点和直线
                 if (ShowDrawLine == true)
                 {
                     if (JudgeCount == 0)
                     {
-                        g.DrawLine(myPen, SendPoint1.X, Convert.ToSingle(SendPoint1.Y - 0.5), SendPoint1.X, Convert.ToSingle(SendPoint1.Y + 0.5));
-                        g.DrawLine(myPen, Convert.ToSingle(SendPoint1.X - 0.5), SendPoint1.Y, Convert.ToSingle(SendPoint1.X + 0.5), SendPoint1.Y);
+                        g.DrawLine(myPen, p1.X, p1.Y - 0.5f, p1.X, p1.Y + 0.5f);
+                        g.DrawLine(myPen, p1.X - 0.5f, p1.Y, p1.X + 0.5f, p1.Y);
                     }
                     else if (JudgeCount == 1)
                     {
-                        g.DrawLine(myPen, SendPoint1.X, Convert.ToSingle(SendPoint1.Y - 0.5), SendPoint1.X, Convert.ToSingle(SendPoint1.Y + 0.5));
-                        g.DrawLine(myPen, Convert.ToSingle(SendPoint1.X - 0.5), SendPoint1.Y, Convert.ToSingle(SendPoint1.X + 0.5), SendPoint1.Y);
-                        g.DrawLine(myPen, SendPoint2.X, Convert.ToSingle(SendPoint2.Y - 0.5), SendPoint2.X, Convert.ToSingle(SendPoint2.Y + 0.5));
-                        g.DrawLine(myPen, Convert.ToSingle(SendPoint2.X - 0.5), SendPoint2.Y, Convert.ToSingle(SendPoint2.X + 0.5), SendPoint2.Y);
-                        g.DrawLine(myPen2, SendPoint1, SendPoint2);
+                        g.DrawLine(myPen, p1.X,p1.Y - 0.5f, p1.X, p1.Y + 0.5f);
+                        g.DrawLine(myPen, p1.X - 0.5f, p1.Y, p1.X + 0.5f, p1.Y);
+                        g.DrawLine(myPen, p2.X, p2.Y - 0.5f, p2.X, p2.Y + 0.5f);
+                        g.DrawLine(myPen, p2.X - 0.5f, p2.Y, p2.X + 0.5f, p2.Y);
+                        g.DrawLine(penGreen, p1, p2);
                     }
                     else { }
                 }
@@ -516,46 +491,45 @@ namespace LSClient
                 if (ShowCurve == true)
                 {
                     PointF[] pt = new PointF[2];
+                    float i = -500;
                     if (XorY == false)//假设现在准线平行于X轴
                     {
-                        double i = -500;
                         while (i <= 500)
                         {
-                            pt[0].X = Convert.ToSingle(i);
-                            pt[0].Y = Convert.ToSingle(ParaA * System.Math.Pow(pt[0].X, 2) + ParaB);
-                            pt[1].X = Convert.ToSingle(i + 0.5);
-                            pt[1].Y = Convert.ToSingle(ParaA * System.Math.Pow(pt[1].X, 2) + ParaB);
+                            pt[0].X = i;
+                            pt[0].Y = ParaA * pt[0].X*pt[0].X + ParaB;
+                            pt[1].X = i + 0.5f;
+                            pt[1].Y = ParaA *pt[1].X*pt[1].X + ParaB;
                             if (pt[0].Y <= 500 * 20 && pt[1].Y <= 500 * 20)
                             {
-                                g.DrawLine(myPen1, pt[0], pt[1]);
+                                g.DrawLine(penGreen, pt[0], pt[1]);
                             }
-                            i = i + 0.5;
+                            i = i + 0.5f;
                         }
                     }
                     else
                     {
-                        double i = -500;
                         while (i <= 500)
                         {
-                            pt[0].Y = Convert.ToSingle(i);
-                            pt[0].X = Convert.ToSingle(ParaA * System.Math.Pow(pt[0].X, 2) + ParaB);
-                            pt[1].Y = Convert.ToSingle(i + 0.5);
-                            pt[1].X = Convert.ToSingle(ParaA * System.Math.Pow(pt[1].X, 2) + ParaB);
+                            pt[0].Y = i;
+                            pt[0].X = ParaA * pt[0].X*pt[0].X + ParaB;
+                            pt[1].Y = i + 0.5f;
+                            pt[1].X = ParaA * pt[1].X*pt[1].X + ParaB;
                             if (pt[0].X <= 500 * 20 && pt[1].X <= 500 * 20)
                             {
-                                g.DrawLine(myPen1, pt[0], pt[1]);
+                                g.DrawLine(penGreen, pt[0], pt[1]);
                             }
-                            i = i + 0.5;
+                            i = i + 0.5f;
                         }
                     }
                     DrawCurve = false;
                 }
 
-            }
-            catch
-            {
-                MessageBox.Show("catch");
-            }
+            //}
+            //catch
+            //{
+            //    MessageBox.Show("catch");
+            //}
         }
         private void DrawChess(Graphics g, Pen p)
         {
@@ -563,30 +537,15 @@ namespace LSClient
 
             for (int i = -500; i <= 500; i++)
             {
-                g.DrawLine(p, i * 20, -10000, i * 20, 10000);
+                g.DrawLine(p, i * 20, -1000, i * 20, 1000);
 
             }
             for (int i = -500; i <= 500; i++)
             {
-                g.DrawLine(p, -10000, i * 20, 10000, i * 20);
+                g.DrawLine(p, -1000, i * 20, 1000, i * 20);
 
             }
 
-
-        }
-
-        private void textBox3_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox4_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void WinRectangle_Click(object sender, EventArgs e)
-        {
 
         }
 
@@ -613,8 +572,8 @@ namespace LSClient
             {
                 try
                 {
-                    ParaA = Convert.ToDouble(Para_a.Text);
-                    ParaB = Convert.ToDouble(Para_b.Text);
+                    ParaA = Convert.ToSingle(Para_a.Text);
+                    ParaB = Convert.ToSingle(Para_b.Text);
                     DrawCurve = true;
                     ShowCurve = true;
                     DrawPanel.Refresh();
@@ -628,24 +587,34 @@ namespace LSClient
             }
         }
 
-        private void label4_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label6_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label8_Click(object sender, EventArgs e)
-        {
-
-        }
 
         private void groupBox1_Enter(object sender, EventArgs e)
         {
 
         }
+        public void GetBoundingBox(PointF[] points)
+        {
+            object thislock = new object();
+            lock (thislock) //这是通过监听线程访问的，防止别的线程访问box，先将它锁住。
+            {
+                box.Xmin = points[0].X;
+                box.Xmax = points[0].X;
+                box.Ymin = points[0].Y;
+                box.Ymax = points[0].Y;
+                //选取边界盒
+                for (int i = 1; i < points.Length; i++)
+                {
+                    if (points[i].X < box.Xmin) box.Xmin = points[i].X;
+                    if (points[i].Y < box.Ymin) box.Ymin = points[i].Y;
+                    if (points[i].X > box.Xmax) box.Xmax = points[i].X;
+                    if (points[i].Y > box.Ymax) box.Ymax = points[i].Y;
+                }
+            }
+        }
+
+        public float Wx => box.Xmax - box.Ymin;
+        public float Wy => box.Ymax - box.Ymin;
     }
+
+
 }

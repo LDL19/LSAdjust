@@ -31,10 +31,6 @@ namespace LSClient
 
         Matrix mat;//将page坐标变到world坐标
 
-        Bitmap bitScreen;
-        Bitmap bitPanel;
-
-
         /// <summary>
         /// 窗体初始化，将service，tableIndex，seat初始化
         /// </summary>
@@ -115,7 +111,7 @@ namespace LSClient
         {
             box.Xmin = ZoomChange(scale, mouse.X, box.Xmin);
             box.Ymin = ZoomChange(scale, mouse.Y, box.Ymin);
-            box.Xmax = ZoomChange(scale, mouse.X, box.Ymax);
+            box.Xmax = ZoomChange(scale, mouse.X, box.Xmax);
             box.Ymax = ZoomChange(scale, mouse.Y, box.Ymax);
         }
         public float ZoomChange(float scale, float mouse, float old) => mouse + scale * (old - mouse);
@@ -389,8 +385,6 @@ namespace LSClient
                 Lp[4].X = this.mouseDown.X;
                 Lp[4].Y = this.mouseDown.Y;
                 e.Graphics.DrawLines(p1, Lp);
-                //Rectangle window = new Rectangle((int)mouseBegin.X, (int)mouseBegin.Y, (int)(mouseEnd.X - mouseBegin.X), (int)(mouseBegin.Y - mouseEnd.Y));
-                //ControlPaint.DrawReversibleFrame(window, Color.Blue, FrameStyle.Thick);
             }
         }
 

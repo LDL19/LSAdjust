@@ -189,33 +189,40 @@ namespace LSServer
                         //添加sendString..............
 
                         //如果本桌每个人都开始了，就开始发牌deal...........
-                        int sumReady = 0;
-                        for (int i = 0; i < Table.MAX_USER; i++)
-                            if(tables[tableIndex].users[i]!=null)
-                                if (tables[tableIndex].users[i].ready)
-                                    sumReady++;
-                        if(sumReady==Table.MAX_USER)
+                        object readylock = new object();
+                        lock (readylock)
                         {
-                            sendStr = "Deal"; //格式：Deal ,总点数，每个点的x，y坐标。
-                            PointF[] points = tables[tableIndex].Cal_Line();
-                            int sum = points.Length;
-                            sendStr += ',' + sum.ToString();
-                            for (int i=0;i<sum;i++)
+                            int sumReady = 0;
+                            for (int i = 0; i < Table.MAX_USER; i++)
+                                if (tables[tableIndex].users[i] != null)
+                                    if (tables[tableIndex].users[i].ready)
+                                        sumReady++;
+                            if (sumReady == Table.MAX_USER)
                             {
-                                string x = points[i].X.ToString();
-                                string y = points[i].Y.ToString();
-                                sendStr += ',' + x + ',' + y;
-
+                                sendStr = "Deal"; //格式：Deal ,总点数，每个点的x，y坐标。
+                                tables[tableIndex].Cal_Line();//注意在calline后面会计算回归。
+                                PointF[] points = tables[tableIndex].points;
+                                int sum = points.Length;
+                                sendStr += ',' + sum.ToString();
+                                for (int i = 0; i < sum; i++)
+                                {
+                                    string x = points[i].X.ToString();
+                                    string y = points[i].Y.ToString();
+                                    sendStr += ',' + x + ',' + y;
+                                }
+                                service.Send2Table(tables[tableIndex], sendStr);
+                                for (int i = 0; i < Table.MAX_USER; i++)
+                                {
+                                    if (tables[tableIndex].users[i] != null)
+                                    {
+                                        tables[tableIndex].users[i].ready = false;
+                                    }
+                                }
+                                tables[tableIndex].round++;//关数加1。
+                                
                             }
-                            service.Send2Table(tables[tableIndex], sendStr);
-                        }
+                        }//保证同一时间只有一个线程在统计、发牌，发完牌之后，ready置为false。
                         
-                        //if (n < 4)
-                        //    ch = 1;      //1-3关
-                        //else if (n > 3 || n < 6)
-                        //    ch = 2;      // 4-5关
-                        //else if(n>5||n<10)
-                        //    ch = 3;       //6-9关
 
                         //Cal_point(ch, point, cpoint, a, b, c, p);
                         //for (int i = 0; i < 30; i++)             //将点传输出去
@@ -228,48 +235,26 @@ namespace LSServer
 
                         break;
                     case "Finish":
-                        //格式:Finish,直线的端点坐标
-
-                        ////int ch1=1; Point[] point1=null;Point [] point2=null; Point cpoint1; double a1=0; double b1=0; double c1=0; double p1=0;
-
-                        ////?????此处是需for循环读取每个玩家传回的数据吗？由于没看太懂你写的通讯代码，恳请炜哥改正
-
-                        //receiveStr = user.sr.ReadLine();//从流中读取一行，第一，二行为确定直线或准线的两个点
-                        ////字符串长度暂定为5，如有其它读取点坐标的方法，再做改正！！！！
-                        //point1[0].X =int.Parse( receiveStr.Substring(0,5));      //读取第一个点
-                        //point1[0].Y = int.Parse(receiveStr.Substring(5, 5));
-
-                        //receiveStr = user.sr.ReadLine();
-                        //point1[1].X =int.Parse( receiveStr.Substring(0,5));     //读取第二个点
-                        //point1[1].Y = int.Parse(receiveStr.Substring(5, 5));
-
-                        //receiveStr = user.sr.ReadLine();
-                        //cpoint1.X =int.Parse( receiveStr.Substring(0,5)); //读取焦点
-                        //cpoint1.Y = int.Parse(receiveStr.Substring(5, 5));
-
-                        //if (n < 4)
-                        //{
-                        //    ch1 = 1;   
-                        //    point4=point3;
-                        //}//1-3关
-                        //else if (n > 3 || n < 6)
-                        //{
-                        //    ch1 = 2;      // 4-5关
-                        //    point4 = point;                   //！！！！回归分析只能对直线问题进行平差，当为抛物线时，残差平方和只能与原模型所对应的点进行计算
-                        //}
-                        //else if (n > 5 || n < 10)
-                        //{
-                        //    ch1 = 3;       //6-9关
-                        //    point4 = point;
-                        //}
-                        //Cal_Line(ch1,point1,point2,cpoint,a1, b1,  c1,  p1) ;      //根据传回的点恢复模型参数并计算点坐标
-
-                        //int dist=0;
-                        //Cal_dis(point4, point2, dist);       //计算残差平方和
-                        //sendStr = ("Deal" + dist.ToString());
-                        //service.Send2Table(tables[tableIndex], sendStr);    //传回积分
-
-                        //n = n + 1;        //通关，进入下一关
+                        //格式:Finish,x1,y1,x2,y2
+                        //mode =1 直线 mode==2抛物线
+                        //算出残差平方和并存入
+                        float x1 = int.Parse(info[1]);
+                        float y1 = int.Parse(info[2]);
+                        float x2 = int.Parse(info[3]);
+                        float y2 = int.Parse(info[4]);
+                        user.sumErr= tables[tableIndex].Calcu_sumErr(x1, y1, x2, y2);//东林写
+                        user.finished = true;
+                        object finishedlock = new object();
+                        lock(finishedlock)
+                        {
+                            tables[tableIndex].sumFinished++;
+                        }
+                        if(tables[tableIndex].sumFinished==Table.MAX_USER)
+                        {
+                            sendStr = "Result";//rank sumerr ,
+                            
+                            
+                        }
                         break;
                     case "Chat":
                         //格式：Chat,对话内容

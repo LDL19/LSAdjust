@@ -14,12 +14,23 @@ namespace LSServer
         //public Player[] players;
         public User[] users;
         //private ListBox listBox;
-
-        public int round; //关数
-        float[] cof;//参数数组
-        public PointF[] point;//散点
+        public int sumFinished=0;//统计本桌上的完成的人数
+        public int round=1; //关数
+        float[] cof;//参数数组 [0]：0次项系数 [1]:1次项系数
+        public PointF[] points;//散点
         int num = 10;//默认产生10个点
-        int mode = 1;//默认选择模式1 即直线模式
+        //将发牌方式定义为属性，由round关数完全确定
+        public int mode => round % 3 == 0 ? 2 : 1; //如果关数为三的倍数，mode设置为2（抛物线）否则是一般的直线。
+        //这种写法是lambda 表达式的写法，一句顶5句。注意mode是（可读）属性，
+        //{
+        //    get
+        //    {
+        //        if (round % 3 == 0)
+        //            return 1;
+        //        else
+        //            return 0;
+        //    }
+        //}
 
         public Table()
         {
@@ -34,9 +45,9 @@ namespace LSServer
         /// </summary>
         /// <param name="num">参数个数</param>
         /// <returns></returns>
-        public PointF[] Cal_Line(int num=20,double limit=1)
+        public void Cal_Line(int num=20,double limit=3)
         {
-            PointF[] points = new PointF[num];
+            points = new PointF[num];
             Random ra = new Random(unchecked((int)DateTime.Now.Ticks));
             double a = ra.NextDouble()*5-2.5;
             double b = ra.NextDouble()*5-2.5;
@@ -47,12 +58,12 @@ namespace LSServer
                 points[i].X = i - num/2;
                 points[i].Y = (float)(i * a + b + delta);
             }
-            // ............
-            return points;
+            Huigui(); //产生散点的同时把回归方程算出来
+
         }
-        public PointF[] Cal_Poly2(int num=20,double limit=1)
+        public void Cal_Poly2(int num=20,double limit=2)
         {
-            PointF[] points = new PointF[num];
+            points = new PointF[num];
             Random ra = new Random(unchecked((int)DateTime.Now.Ticks));
             double a = ra.NextDouble()*5-2.5;
             double b = ra.NextDouble()*5-2.5;
@@ -65,48 +76,54 @@ namespace LSServer
                 points[i].Y = (float)(i*i * a + b*i+c + delta);
             }
             // ............
-            return points;
-
+            Huigui();
         }
 
         /// <summary>
         /// 根据散点计算回归直线
         /// 将产生的回归的系数再次赋给cof
         /// </summary>
-        /// <returns>回归直线的参数b0 b1</returns>
-        public PointF[] Huigui(PointF[] points,double a,double b,double c,int mode = 1)
+        /// <returns></returns>
+        public void Huigui()
         {
             int len = points.Length;
             PointF[] points2 = new PointF[len];
-            if (mode==1)
+            float[,] A = new float[len, mode];//mode=1 二列 mode=2，抛物线，三个系数， 三列
+            float[] Y = new float[len];
+            if (mode == 1)
             {
-                float[,] A = new float[len, 1];
-                float[] Y = new float[len];
-                for(int i=0;i<len;i++)
+                for (int i = 0; i < len; i++)
                 {
                     A[i, 0] = 1;
                     A[i, 1] = points[i].X;
                     Y[i] = points[i].Y;
                 }
-                float[,] AT = Matrix.T(A);
-                float[,] N = Matrix.Multi(AT, A);
-                float[,] invN = Matrix.Inv(N);
-                float[,] invA = Matrix.Multi(invN, AT);
-                float[] B = Matrix.Multi1(invA,Y);
-                a = B[1];
-                b = B[0];
-                
-                for(int i=0;i<len;i++)
-                {
-                    points2[i].X = points[i].X;
-                    points2[i].Y = (float)(a * points2[i].X + b);
-                }
-               
             }
-            return points2; 
+            else if(mode==2)
+            {
+                for (int i = 0; i < len; i++)
+                {
+                    A[i, 0] = 1;
+                    A[i, 1] = points[i].X;
+                    A[i, 2] = points[i].X * points[i].X;
+                    Y[i] = points[i].Y;
+                }
+            }
+            float[,] AT = Matrix.T(A);
+            float[,] N = Matrix.Multi(AT, A);
+            float[,] invN = Matrix.Inv(N);
+            float[,] invA = Matrix.Multi(invN, AT);
+            cof = Matrix.Multi1(invA, Y); //依次为beta0，beta1 beta2.0次项系数，一次项系数和二次项系数（如果有的话)。
+
+            //for(int i=0;i<len;i++)
+            //{
+            //    points2[i].X = points[i].X;
+            //    points2[i].Y =(cof[0] * points2[i].X + b);
+            //}
+               
         }
 
-        
+
 
         //public void Cal_point(int ch, Point[] point, Point cpoint, double a, double b, double c, double p)                   //产生散点
         //{
@@ -166,74 +183,21 @@ namespace LSServer
         //        cpoint.Y = (int)((4 * a * c - b * b) / (4.0 * a));
         //    }
         //}
-        //public void Cal_Line(int ch, Point[] point1, Point[] point2, Point cpoint, double a, double b, double c, double p)              //由点计算直线和抛物线模型
-        //{
-        //    if (ch == 1)                                           //直线
-        //    {
-        //        a = (double)(point1[1].Y - point1[1].Y) / (point1[1].X - point1[0].X);         //斜率a
-        //        b = (double)point1[0].Y - a * point1[0].X;                                   //常数b
-        //        for (int i = 0; i < 30; i++)
-        //        {
-        //            point2[i].X = i - 10;
-        //            point2[i].Y = (int)(a * i + b);
-        //        }
-        //    }
-        //    else if (ch == 2)                                     //横轴抛物线
-        //    {
-        //        p = cpoint.X * 4.0;
-        //        for (int i = 0; i < 30; i++)
-        //        {
-        //            point2[i].Y = i - 15;
-        //            point2[i].X = (int)((point2[i].Y * point2[i].Y) / p);
-        //        }
-
-        //    }
-        //    else if (ch == 3)                       //已知焦点和准线，如何确定抛物线方程
-        //    {
-        //        int y = point1[0].Y - cpoint.Y;
-        //        a = 1 / (-4.0 * y);
-        //        b = -2.0 * a * cpoint.X;
-        //        c = (4.0 * a * cpoint.Y + b * b) / (4.0 * a);
-        //        for (int i = 0; i < 30; i++)
-        //        {
-        //            point2[i].X = i - 15 + cpoint.X;
-        //            point2[i].Y = (int)(a * point2[i].X * point2[i].X + b * point2[i].X + c);
-        //        }
-        //    }
-        //}
-        //public void Cal_dis(Point[] point1, Point[] point2, int dist)                       //计算残差平方和
-        //{
-        //    dist = 0;
-        //    for (int i = 0; i < 30; i++)
-        //    {
-        //        dist += (point1[i].X - point2[i].X) ^ 2 + (point1[i].Y - point2[i].Y) ^ 2;
-        //    }
-        //}
-        //public void Cal_Huigui(Point[] point1, Point[] point2)
-        //{
-        //    double a; double b;
-        //    double[,] A = new double[29, 1];
-        //    double[,] tA = new double[1, 29];
-        //    double[,] mA = new double[1, 1]; double[,] inA = new double[1, 1]; double[,] m = new double[1, 29];
-        //    double[] Y = new double[29];
-        //    double[] B = new double[2];
-        //    for (int i = 0; i < 30; i++)
-        //    {
-        //        A[i, 0] = 1;
-        //        A[i, 1] = point1[i].X;
-        //        Y[i] = point1[i].Y;
-        //    }
-        //    //Cal_Ma.GetTransMatrix(A, tA);
-        //    //Cal_Ma.MultiplyMatrix(mA, tA, A);
-        //    //Cal_Ma.Cal_Inverse(mA, inA);
-        //    //Cal_Ma.MultiplyMatrix(m, inA, tA);
-        //    //Cal_Ma.MultiplyMatrix1(B, m, Y);
-        //    a = B[1]; b = B[0];
-        //    for (int i = 0; i < 30; i++)
-        //    {
-        //        point2[i].X = i - 10;
-        //        point2[i].Y = (int)(a * i + b);
-        //    }
-        //}
+        public float Calcu_sumErr(float x1,float y1,float x2,float y2)   //计算残差平方和,你先根据x1，y1，x2，y2计算beta0和beta1.
+        {
+            float sumErr = 0;
+            //dist = 0;
+            //for (int i = 0; i < 30; i++)
+            //{
+            //    dist += (point1[i].X - point2[i].X) ^ 2 + (point1[i].Y - point2[i].Y) ^ 2;
+            //}
+            //return 
+            return sumErr;
+        }
+        public void Calcu_rank()
+        {
+            //根据每个人的sumErr计算rank
+            // user就在上面，你要用到的sumerr和rank都可以由其访问，
+        }
     }
 }

@@ -37,7 +37,7 @@ namespace LSClient
         private int numPoints;//点的数量
         public PointF[] points; //点
 
-        private Process[] MyProcesses;  //希望实时监测frmplay
+        //private Process[] MyProcesses;  //希望实时监测frmplay
   
        
         public FrmRoom()

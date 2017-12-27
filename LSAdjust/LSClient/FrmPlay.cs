@@ -18,18 +18,20 @@ namespace LSClient
         private int seat;
         public Service service;
 
-        public bool gameStart=false;//在接收deal之后变成true
-        Boolean leftDown = false, midDown =false,  rightDown=false;//按下鼠标左键、中键、右键。
+        //public int mode = 1;//用于Finish发送点，mode=1为直线
+
+        public bool gameStart=false;//在接收deal之后变成true，该变量由父窗体改变
+        Boolean leftDown = false, midDown =false,  rightDown=false;//按下鼠标左键、中键、右键。左键画线，中键平移，右键开窗，滚轮缩放。
         Boolean initial=false;//是否为第一次
-        PointF mouseDown, mouseUp;//鼠标按下、鼠标抬起时page的坐标
+        PointF mouseDown, mouseUp;//鼠标按下、鼠标抬起时的world坐标
         FrmRoom frmRoom;
         ////RectangleF rect;//数据范围
-        Box box;//数据的显示范围world
+        Box box;//数据的显示范围，world坐标
 
         PointF p1, p2;//表示画的直线的起点和终点坐标
         int leftCount = 0;//左键点击计数
 
-        Matrix mat;//将page坐标变到world坐标
+        Matrix mat;//将page坐标变到world的变换矩阵
 
         /// <summary>
         /// 窗体初始化，将service，tableIndex，seat初始化
@@ -66,7 +68,7 @@ namespace LSClient
             //beginGame = false;
             //发送结果到服务器
             string sendStr = p1.X + "," + p1.Y + "," +p2.X + "," + p2.Y;
-            service.Send2Server(string.Format("Finish,{0}", sendStr));
+            service.Send2Server(string.Format("Finish,{0}",sendStr));
         }
 
         private void btnReady_Click(object sender, EventArgs e)
@@ -107,13 +109,6 @@ namespace LSClient
             DrawPanel.Width = tabControl1.Width - groupBox1.Width - 32;
             //Refresh();不止为何不能直接点 放大框，这时候，就不能同步
         }
-        public void Zoom(float scale, PointF mouse)
-        {
-            box.Xmin = ZoomChange(scale, mouse.X, box.Xmin);
-            box.Ymin = ZoomChange(scale, mouse.Y, box.Ymin);
-            box.Xmax = ZoomChange(scale, mouse.X, box.Xmax);
-            box.Ymax = ZoomChange(scale, mouse.Y, box.Ymax);
-        }
         public float ZoomChange(float scale, float mouse, float old) => mouse + scale * (old - mouse);
         private void DrawPanel_MouseWheel(object sender, MouseEventArgs e)
         {
@@ -125,7 +120,10 @@ namespace LSClient
             PointF[] mousePo = { new PointF(e.X, e.Y) };
             mat.TransformPoints(mousePo);
             PointF mouse = mousePo[0];
-            Zoom(scale, mouse);
+            box.Xmin = ZoomChange(scale, mouse.X, box.Xmin);
+            box.Ymin = ZoomChange(scale, mouse.Y, box.Ymin);
+            box.Xmax = ZoomChange(scale, mouse.X, box.Xmax);
+            box.Ymax = ZoomChange(scale, mouse.Y, box.Ymax);
             DrawPanel.Refresh();
         }
         private void DrawPanel_MouseDown(object sender, MouseEventArgs e)
@@ -195,39 +193,19 @@ namespace LSClient
                 box.Xmax -= dx;
                 box.Ymin -= dy;
                 box.Ymax -= dy;
-                //Graphics g = DrawPanel.CreateGraphics();
-                //g.DrawImage(bitPanel, -DrawPanel.Width + dx, -DrawPanel.Height + dy);
             }
             else if(e.Button==MouseButtons.Right)
-            {
                 mouseUp = mousePo[0];
-            }
             DrawPanel.Refresh();
-            //if (IsWindow == true)
-            //{
-            //    //显示开窗
-            //    panel.Visible = true;
-            //    LeftX = WindowX;
-            //    LeftY = WindowY;
-            //    //正常情况左上到右下，但如果右下到左上，则需要转化位置
-            //    if (LeftX > e.X) LeftX = e.X + DrawPanel.Location.X;
-            //    if (LeftY > e.Y) LeftY = e.Y + DrawPanel.Location.Y;
-            //    //设置winrectangle的左上角和大小
-            //    panel.Location = new Point(Convert.ToInt32(LeftX), Convert.ToInt32(LeftY));
-            //    panel.Size = new Size(Convert.ToInt32(Math.Abs(e.X - WindowX)), Convert.ToInt32(Math.Abs(e.Y - WindowY)));
-            //}
         }
         private void DrawPanel_MouseUp(object sender, MouseEventArgs e)
         {
-
             if (e.Button == MouseButtons.Middle)
-            {
                 midDown = false;
-            }
             else if (e.Button == MouseButtons.Right)
             {
                 rightDown = false;
-                if (mouseDown.X < mouseUp.X)
+                if (mouseDown.X < mouseUp.X) //保证该box Xmin,Xmax不弄反。
                 {
                     box.Xmin = mouseDown.X;
                     box.Xmax = mouseUp.X;
@@ -257,7 +235,7 @@ namespace LSClient
             Graphics g = e.Graphics;
             g.Clear(Color.White);
             g.ResetTransform();
-            if(initial)
+            if(initial)//如果初始化，这将box定为该值，否则box会在别的事件中变化。
             {
                 box.Xmin = -50;
                 box.Xmax = 50;
@@ -265,45 +243,39 @@ namespace LSClient
                 box.Ymax = 50;
             }
             RectangleF viewport = new RectangleF(box.Xmin, box.Ymin, box.Xmax - box.Xmin, box.Ymax - box.Ymin);
-            float s = ViewPort2Page(g, viewport, DrawPanel.Width, DrawPanel.Height);
-            
+            float s = ViewPort2Page(g, viewport, DrawPanel.Width, DrawPanel.Height);//将viewport显示在drawpanel上
             mat = g.Transform.Clone();
             mat.Invert();
-            // 设立一个彩色的画笔
             float penWidth = s;   // 计算画笔宽度，为缩放比例的倒数。
 
             Pen pen = new Pen(Color.FromArgb(220, 220, 220), penWidth);//灰笔画棋盘
             DrawChessboard(g, pen);
-            pen.Color = Color.Red;//红笔画点
+            pen.Color = Color.Red;//红笔画散点
             if(gameStart)
             {
-                PointF[] points = frmRoom.points;
+                PointF[] points = frmRoom.points;//访问父窗体中的points。
                 for(int i=0;i<points.Length;i++)
                 {
                     g.DrawLine(pen, points[i].X - penWidth * 10, points[i].Y, points[i].X + penWidth * 10, points[i].Y);
                     g.DrawLine(pen, points[i].X, points[i].Y - penWidth * 10, points[i].X, points[i].Y + penWidth * 10);
                 }
-                pen.Color = Color.Blue;//蓝笔画线
-                Pen penGreen = new Pen(Color.Green, penWidth);
-                if (leftCount == 1)
-                {
-                    g.DrawLine(pen, p1.X, p1.Y - 0.5f, p1.X, p1.Y + 0.5f);
-                    g.DrawLine(pen, p1.X - 0.5f, p1.Y, p1.X + 0.5f, p1.Y);
-                   
-                }
-                else if (leftCount == 0)
-                {
-                    g.DrawLine(pen, p1.X, p1.Y - 0.5f, p1.X, p1.Y + 0.5f);
-                    g.DrawLine(pen, p1.X - 0.5f, p1.Y, p1.X + 0.5f, p1.Y);
-                    g.DrawLine(pen, p2.X, p2.Y - 0.5f, p2.X, p2.Y + 0.5f);
-                    g.DrawLine(pen, p2.X - 0.5f, p2.Y, p2.X + 0.5f, p2.Y);
-                    g.DrawLine(penGreen, p1, p2);
-
-                }
             }
-           
-            
-            //Pen penGreen = new Pen(Color.FromArgb(0, 200, 0), penWidth);
+            pen.Color = Color.Blue;//蓝笔画线端点
+            Pen penGreen = new Pen(Color.FromArgb(255, 0, 200, 0), penWidth);//绿笔画线
+            if (leftCount == 1)
+            {
+                g.DrawLine(pen, p1.X, p1.Y - penWidth * 10, p1.X, p1.Y + penWidth * 10);
+                g.DrawLine(pen, p1.X - penWidth * 10, p1.Y, p1.X + penWidth * 10, p1.Y);
+            }
+            else if (leftCount == 0)
+            {
+                g.DrawLine(pen, p1.X, p1.Y - penWidth * 10, p1.X, p1.Y + penWidth * 10);
+                g.DrawLine(pen, p1.X - penWidth * 10, p1.Y, p1.X + penWidth * 10, p1.Y);
+                g.DrawLine(pen, p2.X, p2.Y - penWidth * 10, p2.X, p2.Y + penWidth * 10);
+                g.DrawLine(pen, p2.X - penWidth * 10, p2.Y, p2.X + penWidth * 10, p2.Y);
+                g.DrawLine(penGreen, p1, p2);
+
+            }
 
             //测试数据
 
@@ -369,7 +341,7 @@ namespace LSClient
             //{
             //    MessageBox.Show("catch");
             //}
-            if (rightDown)
+            if (rightDown)//画窗
             {
                 Pen p1 = new Pen(Color.Black);
                 p1.Width = (float)0.000001;
@@ -387,7 +359,11 @@ namespace LSClient
                 e.Graphics.DrawLines(p1, Lp);
             }
         }
-
+        /// <summary>
+        /// 将“视口”还原
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnRedraw_Click(object sender, EventArgs e)
         {
             initial = true;
@@ -420,7 +396,7 @@ namespace LSClient
         }
         private void DrawChessboard(Graphics g, Pen p)
         {
-            //以1为间隔画坐标系的网格
+            //以interval为间隔画坐标系的网格
             int interval = 2;
             for (int i = -100; i <= 100; i+=interval)
                 g.DrawLine(p, i , -100, i , 100);

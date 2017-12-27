@@ -19,8 +19,11 @@ namespace LSServer
         public Thread threadReceive;
 
         public bool ready=false;
-        public int score;
-        public int status;
+        public bool finished = false;
+        public float sumErr;//残差平方和，注意C#类里面的变量如果不赋值，初始值为0.
+        //public int score;
+        //public int status;
+        public int rank;//排名
 
         public User(TcpClient client)
         {

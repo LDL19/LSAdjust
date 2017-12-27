@@ -20,17 +20,19 @@ namespace LSServer
         public PointF[] points;//散点
         int num = 10;//默认产生10个点
         //将发牌方式定义为属性，由round关数完全确定
-        public int mode => round % 3 == 0 ? 2 : 1; //如果关数为三的倍数，mode设置为2（抛物线）否则是一般的直线。
+        public int mode  //如果关数为三的倍数，mode设置为2,3（抛物线）否则是一般的直线。
         //这种写法是lambda 表达式的写法，一句顶5句。注意mode是（可读）属性，
-        //{
-        //    get
-        //    {
-        //        if (round % 3 == 0)
-        //            return 1;
-        //        else
-        //            return 0;
-        //    }
-        //}
+        {
+            get
+            {
+                if (round > 6)
+                    return 2;
+                else if (round < 4)
+                    return 1;
+                else
+                    return 0;
+            }
+        }
 
         public Table()
         {
@@ -61,6 +63,20 @@ namespace LSServer
             Huigui(); //产生散点的同时把回归方程算出来
 
         }
+        public PointF[] Cal_Poly1(int num = 20, double limit = 2) ///横轴抛物线
+        {
+            PointF[] points = new PointF[num];
+            Random ra = new Random(unchecked((int)DateTime.Now.Ticks));
+            double p = ra.NextDouble() * 5;
+            double delta;
+            for (int i = 0; i < num; i++)
+            {
+                delta = ra.NextDouble() * limit - limit / 2.0;
+                points[i].Y = i - num/2;
+                points[i].Y = (float)((points[i].Y * points[i].Y) / (2.0 * p) + delta);
+            }
+            return points;
+        }
         public void Cal_Poly2(int num=20,double limit=2)
         {
             points = new PointF[num];
@@ -84,13 +100,13 @@ namespace LSServer
         /// 将产生的回归的系数再次赋给cof
         /// </summary>
         /// <returns></returns>
-        public void Huigui()
+        public float Huigui()
         {
             int len = points.Length;
             PointF[] points2 = new PointF[len];
-            float[,] A = new float[len, mode];//mode=1 二列 mode=2，抛物线，三个系数， 三列
+            float[,] A = new float[len, mode];//mode=1 二列 mode=0，横轴抛物线抛物线，一个系数，一列 mode=2,竖轴抛物线，三个系数， 三列
             float[] Y = new float[len];
-            if (mode == 1)
+            if (mode == 1)    //直线
             {
                 for (int i = 0; i < len; i++)
                 {
@@ -99,7 +115,15 @@ namespace LSServer
                     Y[i] = points[i].Y;
                 }
             }
-            else if(mode==2)
+            else if (mode == 0)     //横轴抛物线
+            {
+                for (int i = 0; i < len; i++)
+                {
+                    A[i, 0] = points[i].X;
+                    Y[i] = points[i].Y * points[i].Y;
+                }
+            }
+            else if (mode == 2)
             {
                 for (int i = 0; i < len; i++)
                 {
@@ -114,7 +138,39 @@ namespace LSServer
             float[,] invN = Matrix.Inv(N);
             float[,] invA = Matrix.Multi(invN, AT);
             cof = Matrix.Multi1(invA, Y); //依次为beta0，beta1 beta2.0次项系数，一次项系数和二次项系数（如果有的话)。
-
+            float a = cof[2]; float b = cof[1]; float c = cof[0];
+            
+            if (mode == 0)    //横轴抛物线
+            {
+                for (int i = 0; i < len; i++)
+                {
+                    points2[i].Y = points[i].X;
+                    points2[i].X = (float)((points2[i].Y * points2[i].Y) / c);
+                }
+            }
+            else if (mode == 1)    //直线
+            {
+                for (int i = 0; i < len; i++)
+                {
+                    points2[i].X = points[i].X;
+                    points2[i].Y = (float)(b * points2[i].X + c);
+                }
+            }
+            else if (mode == 2)    //竖轴抛物线
+            {
+                for (int i = 0; i < len; i++)
+                {
+                    points2[i].X = points[i].X;
+                    points2[i].Y = (float)(a * points2[i].X * points2[i].X + b * points2[i].X + c);
+                }
+            }
+            float Qe=0;  //计算残差平方和的
+            for (int i = 0; i < 30; i++)
+            {
+                 Qe+= (points[i].X - points2[i].X) * (points[i].X - points2[i].X) + (points[i].Y - points2[i].Y) * (points[i].Y - points2[i].Y);
+            }
+            return Qe;
+            
             //for(int i=0;i<len;i++)
             //{
             //    points2[i].X = points[i].X;
@@ -122,82 +178,92 @@ namespace LSServer
             //}
                
         }
+        /// <summary>
+        /// 计算误差差平方和,你先根据x1，y1，x2，y2计算beta0和beta1.
+        /// 并传回回归分析的结果
+        /// </summary>
+        /// <param name="x1"></param>
+        /// <param name="y1"></param>
+        /// <param name="x2"></param>
+        /// <param name="y2"></param>
+        /// <param name="x0"></param>
+        /// <param name="y0"></param>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="c"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
 
 
-
-        //public void Cal_point(int ch, Point[] point, Point cpoint, double a, double b, double c, double p)                   //产生散点
-        //{
-        //    double[] x = new double[30];
-        //    double[] y = new double[30];
-        //    //Point[] point = new Point[20];
-        //    int i;
-        //    if (ch == 1)    //直线模式      1-3关
-        //    {
-        //        MessageBox.Show("玩家选择直线模式");
-        //        Random ra = new Random(unchecked((int)DateTime.Now.Ticks));
-        //        a = ra.Next(-5, 5);
-        //        b = ra.Next(-10, 10);
-        //        for (i = 0; i < 30; i++)
-        //        {
-        //            double d = ra.Next(-1, 1);
-        //            x[i] = i - 10;
-        //            y[i] = i * a + b + d;
-        //            point[i].X = (int)x[i];
-        //            point[i].Y = (int)y[i];
-        //        }
-
-        //    }
-        //    else if (ch == 2)     //横轴抛物线模式      4-5关
-        //    {
-        //        MessageBox.Show("玩家选择横轴抛物线模式");
-        //        Random ra = new Random(unchecked((int)DateTime.Now.Ticks));
-        //        p = ra.Next(1, 10);
-        //        for (i = 0; i < 30; i++)
-        //        {
-        //            double d = ra.Next(-1, 1);
-        //            y[i] = i - 15;
-        //            x[i] = (y[i] * y[i]) / (2.0 * p) + d;
-        //            point[i].X = (int)x[i];
-        //            point[i].Y = (int)y[i];
-        //        }
-        //    }
-        //    else if (ch == 3)     //竖轴抛物线模式      6-9关
-        //    {
-        //        MessageBox.Show("玩家选择竖轴抛物线模式");
-        //        Random ra = new Random(unchecked((int)DateTime.Now.Ticks));
-        //        a = ra.Next(-10, 10);
-        //        b = ra.Next(-10, 10);
-        //        c = ra.Next(-10, 10);
-        //        double cc = b / ((-2.0) * a);  //焦点横坐标
-        //        for (i = 0; i < 30; i++)
-        //        {
-        //            double d = ra.Next(0, 1);
-        //            x[i] = cc - 15 + i;                    //在焦点两端产生散点
-        //            y[i] = a * x[i] * x[i] + b * x[i] + c + d;
-        //            point[i].X = (int)x[i];
-        //            point[i].Y = (int)y[i];
-
-        //        }
-        //        //Point cpoint;      //焦点坐标
-        //        cpoint.X = (int)cc;
-        //        cpoint.Y = (int)((4 * a * c - b * b) / (4.0 * a));
-        //    }
-        //}
-        public float Calcu_sumErr(float x1,float y1,float x2,float y2)   //计算残差平方和,你先根据x1，y1，x2，y2计算beta0和beta1.
+        
+        public float Calcu_sumErr(float x1,float y1,float x2,float y2,float x0,float y0,float a,float b,float c,float p )   //计算误差差平方和,你先根据x1，y1，x2，y2计算beta0和beta1.
         {
-            float sumErr = 0;
-            //dist = 0;
-            //for (int i = 0; i < 30; i++)
-            //{
-            //    dist += (point1[i].X - point2[i].X) ^ 2 + (point1[i].Y - point2[i].Y) ^ 2;
-            //}
-            //return 
+            float sumErr = 0; int len = points.Length;
+            PointF[] points2 = new PointF[len];
+            //double a; double b; double c; double p;
+            if (mode == 1)                                           ///直线
+            {
+                a = (y2 - y1) / (x2 - x1);         ///斜率a
+                b = y1 - a * x1;                                   ///常数b
+                for (int i = 0; i < num; i++)
+                {
+                    points2[i].X = i - num / 2;
+                    points2[i].Y = (float)(a * points2[i].X + b);
+                }
+            }
+            else if (mode == 0)                                     ///横轴抛物线
+            {
+                p = x0 * 4;
+                for (int i = 0; i < num; i++)
+                {
+                    points2[i].Y = i - num / 2;
+                    points2[i].X = (float)((points2[i].Y * points2[i].Y) / p);
+                }
+
+            }
+            else if (mode == 2)                       //已知焦点和准线，如何确定抛物线方程
+            {
+                float y = x1 - x0;
+                a = (float)(1 / (-4.0 * y));
+                b =(float)( -2.0 * a * x0);
+                c = (float)((4.0 * a * y0 + b * b) / (4.0 * a));
+                for (int i = 0; i < num; i++)
+                {
+                    points2[i].X = i - num / 2 + x0;
+                    points2[i].Y = (float)(a * points2[i].X * points2[i].X + b * points2[i].X + c);
+                }
+            }
+            for (int i = 0; i < 30; i++)  //计算误差平方和
+            {
+                sumErr += (points[i].X - points2[i].X) * (points[i].X - points2[i].X) + (points[i].Y - points2[i].Y) * (points[i].Y - points2[i].Y);
+            }
             return sumErr;
         }
         public void Calcu_rank()
         {
             //根据每个人的sumErr计算rank
             // user就在上面，你要用到的sumerr和rank都可以由其访问，
+            float[] Rank = new float[MAX_USER]; float tem = 0;
+            for(int i=0;i<MAX_USER;i++)
+            {
+                Rank[i]=users[i].sumErr;
+            }
+            for (int i = 0; i < MAX_USER; i++)    //误差平方和排序
+                for (int j = i + 1; j < MAX_USER - 1; j++)
+                {
+                    if (Rank[i] > Rank[j])
+                    {
+                        tem = Rank[i];
+                        Rank[i] = Rank[j];
+                        Rank[j] = tem;
+                    }
+                }
+            for (int i = 0; i < MAX_USER; i++)    //排名次
+                for (int j = 0; j < MAX_USER; j++)
+                {
+                    if (users[i].sumErr == Rank[j])
+                        users[i].rank = j+1;
+                }
         }
     }
 }

@@ -200,6 +200,19 @@ namespace LSServer
                             if (sumReady == Table.MAX_USER)
                             {
                                 sendStr = "Deal"; //格式：Deal ,总点数，每个点的x，y坐标。
+                                int n = tables[tableIndex].round;
+                                if (n < 4)     ///1-3关是直线模式
+                                {
+                                    tables[tableIndex].Cal_Line();
+                                }
+                                else if (n > 3 || n < 7) ///4-6关是横轴抛物线模式
+                                {
+                                    tables[tableIndex].Cal_Poly1();
+                                }
+                                else if (n > 6 || n < 10) ///7-9关是竖轴抛物线模式
+                                {
+                                    tables[tableIndex].Cal_Poly2();
+                                }
                                 tables[tableIndex].Cal_Line();//注意在calline后面会计算回归。
                                 PointF[] points = tables[tableIndex].points;
                                 int sum = points.Length;
@@ -224,38 +237,58 @@ namespace LSServer
                         }//保证同一时间只有一个线程在统计、发牌，发完牌之后，ready置为false。
                         
 
-                        //Cal_point(ch, point, cpoint, a, b, c, p);
-                        //for (int i = 0; i < 30; i++)             //将点传输出去
-                        //{
-                        //    sendStr +=(point[i].ToString()+"\r\n");
-                        //}
-                        //service.Send2Table(tables[tableIndex], sendStr);
-                                                                          
-                        //Cal_Huigui(point,point3);                                                //此处还得添加一个函数，根据散点计算样本拟合线，再传回线上的点point[]
-
                         break;
                     case "Finish":
                         //格式:Finish,x1,y1,x2,y2
-                        //mode =1 直线 mode==2抛物线
+                        //mode =1 直线 mode=2抛物线
                         //算出残差平方和并存入
-                        float x1 = int.Parse(info[1]);
+                        float x1 = int.Parse(info[1]);   //直线或者抛物线准线的 两点坐标
                         float y1 = int.Parse(info[2]);
                         float x2 = int.Parse(info[3]);
                         float y2 = int.Parse(info[4]);
-                        user.sumErr= tables[tableIndex].Calcu_sumErr(x1, y1, x2, y2);//东林写
+                        float x0 = int.Parse(info[5]);    //抛物线焦点坐标
+                        float y0 = int.Parse(info[6]);
+                        float a = 0, b = 0, c = 0, p = 0;
+                        user.sumErr= tables[tableIndex].Calcu_sumErr(x1, y1, x2, y2,x0,y0,a,b,c,p);//东林写
                         user.finished = true;
                         object finishedlock = new object();
                         lock(finishedlock)
                         {
                             tables[tableIndex].sumFinished++;
                         }
+                        //user.rank = tables[tableIndex].Calcu_rank();
                         if(tables[tableIndex].sumFinished==Table.MAX_USER)
                         {
                             sendStr = "Result";//rank sumerr ,
-                            
-                            
+                            sendStr += user.sumErr.ToString() + "," + user.rank.ToString();  //发回误差平方和和名次
+                            service.Send2Table(tables[tableIndex], sendStr);
                         }
+                        //int n = tables[tableIndex].round; //获取当前关数
+                        //炜哥，此处发送回归分析结果，具体发送格式还待定
+                        if (tables[tableIndex].round < 4)
+                        {
+                            ///将回归分析结果发给玩家
+                            sendStr = "Result" + "直线" + a.ToString() + b.ToString();
+                            service.Send2Table(tables[tableIndex], sendStr);
+                        }            ///1-3关
+                        else if (tables[tableIndex].round > 3 || tables[tableIndex].round < 7)
+                        {
+                            /// 4-6关
+                            /// ///将回归分析结果发给玩家
+                            sendStr = "Result" + "横轴抛物线" + p.ToString();
+                            service.Send2Table(tables[tableIndex], sendStr);
+
+                        }
+                        else if (tables[tableIndex].round > 6 || tables[tableIndex].round < 10)
+                        {
+                            ///7-9关
+                            //////将回归分析结果发给玩家
+                            sendStr = "Result" + "竖轴抛物线" + a.ToString() + b.ToString() + c.ToString();
+                            service.Send2Table(tables[tableIndex], sendStr);
+                        }
+                        tables[tableIndex].round += 1;    //进入下关
                         break;
+
                     case "Chat":
                         //格式：Chat,对话内容
                         //说的话可能包含逗号
